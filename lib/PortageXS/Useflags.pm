@@ -6,7 +6,7 @@ package PortageXS::Useflags;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Useflags.pm,v 1.6 2007/04/19 09:05:16 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Useflags.pm,v 1.7 2008/12/01 20:30:23 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -25,6 +25,7 @@ our @EXPORT = qw(
 			getUsedescs
 			sortUseflags
 			getUsemasksFromProfile
+			getUsemasksFromProfileHelper
 		);
 
 # Description:
@@ -111,6 +112,28 @@ sub sortUseflags {
 }
 
 # Description:
+# Helper for getUsemasksFromProfile()
+sub getUsemasksFromProfileHelper {
+	my $self	= shift;
+	my $curPath	= shift;
+	my @files	= ();
+	my $parent	= '';
+
+	if (-e $curPath.'/use.mask') {
+		push(@files,$curPath.'/use.mask');
+	}
+	if (! -e $curPath.'/parent') {
+		return @files;
+	}
+	$parent=$self->getFileContents($curPath.'/parent');
+	foreach (split(/\n/,$parent)) {
+		push(@files,$self->getUsemasksFromProfileHelper($curPath.'/'.$_));
+	}
+
+	return @files;
+}
+
+# Description:
 # Returnvalue is an array containing all masked useflags set in the system-profile.
 #
 # Example:
@@ -135,15 +158,17 @@ sub getUsemasksFromProfile {
 			$curPath=$self->getProfilePath();
 		}
 		
-		while(1) {
-			if (-e $curPath.'/use.mask') {
-				push(@files,$curPath.'/use.mask');
-			}
-			if (! -e $curPath.'/parent') { last; }
-			$parent=$self->getFileContents($curPath.'/parent');
-			chomp($parent);
-			$curPath.='/'.$parent;
-		}
+# 		while(1) {
+# 			print "-->".$curPath."<--\n";
+# 			if (-e $curPath.'/use.mask') {
+# 				push(@files,$curPath.'/use.mask');
+# 			}
+# 			if (! -e $curPath.'/parent') { last; }
+# 			$parent=$self->getFileContents($curPath.'/parent');
+# 			chomp($parent);
+# 			$curPath.='/'.$parent;
+# 		}
+		@files = $self->getUsemasksFromProfileHelper($curPath);
 		
 		$buffer.=$self->getFileContents($self->{'PORTDIR'}.'/profiles/base/use.mask')."\n";
 		foreach(reverse(@files)) {

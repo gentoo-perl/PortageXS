@@ -6,7 +6,7 @@ package PortageXS::Core;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Core.pm,v 1.17 2007/05/20 14:17:40 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Core.pm,v 1.19 2008/12/01 19:53:27 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -18,10 +18,13 @@ package PortageXS::Core;
 # -----------------------------------------------------------------------------
 
 use DirHandle;
+use Shell::EnvImporter;
 require Exporter;
 our @ISA = qw(Exporter PortageXS);
 our @EXPORT = qw(
 			getArch
+			getPortageMakeParam
+			getPortageMakeParamHelper
 			getPortdir
 			getPortdirOverlay
 			getFileContents
@@ -51,15 +54,50 @@ our @EXPORT = qw(
 
 # Description:
 # Returnvalue is ARCH set in the system-profile.
+# Wrapper for old getArch()-version. Use getPortageMakeParam() instead.
 #
 # Example:
 # $arch=$pxs->getArch();
 sub getArch {
 	my $self	= shift;
-	my $curPath	= '';
+	return $self->getPortageMakeParam('ARCH');
+}
+
+# Description:
+# Helper for getPortageMakeParam()
+sub getPortageMakeParamHelper {
+	my $self	= shift;
+	my $curPath	= shift;
 	my @files	= ();
 	my $parent	= '';
-	my $buffer	= '';
+
+	if (-e $curPath.'/make.defaults') {
+		push(@files,$curPath.'/make.defaults');
+	}
+	if (! -e $curPath.'/parent') {
+		return @files;
+	}
+	$parent=$self->getFileContents($curPath.'/parent');
+	foreach (split(/\n/,$parent)) {
+		push(@files,$self->getPortageMakeParamHelper($curPath.'/'.$_));
+	}
+
+	return @files;
+}
+
+# Description:
+# Returnvalue is $PARAM set in the system-profile.
+#
+# Example:
+# $arch=$pxs->getPortageMakeParam();
+sub getPortageMakeParam {
+	my $self		= shift;
+	my $param		= shift;
+	my @files		= ();
+	my @etcfiles		= qw(/etc/make.globals /etc/make.conf);
+	my @profilefiles	= ();
+	my $v			= '';
+	my $parent		= '';
 	
 	if(!-e $self->{'MAKE_PROFILE_PATH'}) {
 		$self->print_err('Profile not set!');
@@ -69,22 +107,42 @@ sub getArch {
 		$curPath=$self->getProfilePath();
 	}
 	
-	while(1) {
-		if (-e $curPath.'/make.defaults') {
-			push(@files,$curPath.'/make.defaults');
+	@profilefiles=$self->getPortageMakeParamHelper($curPath);
+	push(@files,reverse(@profilefiles));
+	push(@files,@etcfiles);
+	
+	foreach (@files) {
+		my $importer = Shell::EnvImporter->new(	shell		=> "bash",
+							file		=> $_,
+							auto_run	=> 1,
+							auto_import	=> 1
+					);
+		
+		$importer->shellobj->envcmd('set');
+		$importer->run();
+		
+		if ($ENV{$param} ne '') {
+			$v=$ENV{$param};
+			$v=~s/\\t/ /g;
+			$v=~s/\t/ /g;
+			$v=~s/^\$'(.*)'$/$1/m;
+			$v=~s/^'(.*)'$/$1/m;
+			$v=~s/\\n/ /g;
+			$v=~s/\\|\'|\\'|\$//gmxs;
+			$v=~s/^\s//;
+			$v=~s/\s$//;
+			$v=~s/\s{2,}/ /g;
 		}
-		if (! -e $curPath.'/parent') { last; }
-		$parent=$self->getFileContents($curPath.'/parent');
-		chomp($parent);
-		$curPath.='/'.$parent;
+		
+		$importer->restore_env();
 	}
 	
-	$buffer.=$self->getFileContents('/etc/make.conf').$self->getFileContents('/etc/make.globals');
-	foreach(@files) {
-		$buffer.=$self->getFileContents($_);
+	# - Defaults >
+	if ($param eq 'PORTDIR' && !$v) {
+		$v='/usr/portage';
 	}
 	
-	return $self->getParamFromFile($buffer,'ARCH','firstseen');
+	return $v;
 }
 
 # Description:
