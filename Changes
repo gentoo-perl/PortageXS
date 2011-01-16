@@ -1,6 +1,11 @@
 Changes
 -------
 
+0.02.07
+	- Optional parameter repo: getAvailableEbuilds()
+	- New functions: searchPackageByHerd(), searchPackageByMaintainer()
+	- Fixed bug #178745 - Affected function: getParamFromFile()
+	
 0.02.06
 	- fileBelongsToPackage(): Do not die if CONTENTS file is missing. (Reported by Michael Cummings <mcummings@gentoo.org>)
 	- Speedup functions getFilesOfInstalledPackage(), fileBelongsToPackage()

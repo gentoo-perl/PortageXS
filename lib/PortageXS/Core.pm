@@ -6,7 +6,7 @@ package PortageXS::Core;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Core.pm,v 1.16 2007/04/19 09:05:16 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Core.pm,v 1.17 2007/05/20 14:17:40 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -45,6 +45,8 @@ our @EXPORT = qw(
 			getPackagesFromWorld
 			recordPackageInWorld
 			removePackageFromWorld
+			searchPackageByMaintainer
+			searchPackageByHerd
 		);
 
 # Description:
@@ -314,20 +316,16 @@ sub getParamFromFile {
 		# - remove comments >
 		$lines[$c]=~s/#(.*)//g;
 		
-		if ($lines[$c]=~/$param="(.*)"/) {
+		# - remove leading whitespaces and tabs >
+		$lines[$c]=~s/^[ |\t]+//;
+		
+		if ($lines[$c]=~/^$param="(.*)"/) {
 			# single-line with quotationmarks >
 			$value=$1;
 		
-			if ($mode eq 'firstseen') {
-				# - 6. clean up value >
-				$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
-				$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
-				$value=~s/\t/ /g;     # replace tabs with whitespaces
-				$value=~s/ {2,}/ /g;  # replace 1+ whitespaces with 1 whitespace
-				return $value;
-			}
+			last if ($mode eq 'firstseen');
 		}
-		elsif ($lines[$c]=~/$param="(.*)/) {
+		elsif ($lines[$c]=~/^$param="(.*)/) {
 			# multi-line with quotationmarks >
 			$value=$1.' ';
 			for($d=$c+1;$d<=$#lines;$d++) {
@@ -343,27 +341,13 @@ sub getParamFromFile {
 				}
 			}
 		
-			if ($mode eq 'firstseen') {
-				# - clean up value >
-				$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
-				$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
-				$value=~s/\t/ /g;     # replace tabs with whitespaces
-				$value=~s/ {2,}/ /g;  # replace 1+ whitespaces with 1 whitespace
-				return $value;
-			}
+			last if ($mode eq 'firstseen');
 		}
-		elsif ($lines[$c]=~/$param=(.*)/) {
+		elsif ($lines[$c]=~/^$param=(.*)/) {
 			# - single-line without quotationmarks >
 			$value=$1;
 			
-			if ($mode eq 'firstseen') {
-				# - 6. clean up value >
-				$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
-				$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
-				$value=~s/\t/ /g;     # replace tabs with whitespaces
-				$value=~s/ {2,}/ /g;  # replace 1+ whitespaces with 1 whitespace
-				return $value;
-			}
+			last if ($mode eq 'firstseen');
 		}
 	}
 	
@@ -417,15 +401,19 @@ sub getUseSettingsOfInstalledPackage {
 }
 
 # Description:
-# @listOfEbuilds=$pxs->getAvailableEbuilds(category/packagename);
+# @listOfEbuilds=$pxs->getAvailableEbuilds(category/packagename,[$repo]);
 sub getAvailableEbuilds {
 	my $self	= shift;
 	my $catPackage	= shift;
+	my $repo	= shift;
 	my @packagelist	= ();
 	
-	if (-e $self->{PORTDIR}.'/'.$catPackage) {
+	$repo=$self->{'PORTDIR'} if (!$repo);
+	if (!-d $repo) { return (); }
+	
+	if (-e $repo.'/'.$catPackage) {
 		# - get list of ebuilds >
-		my $dh = new DirHandle($self->{PORTDIR}.'/'.$catPackage);
+		my $dh = new DirHandle($repo.'/'.$catPackage);
 		while (defined($_ = $dh->read)) {
 			if ($_ =~ m/(.+)\.ebuild$/) {
 				push(@packagelist,$_);
@@ -731,6 +719,77 @@ sub resetCaches {
 	$self->{'CACHE'}{'Useflags'}{'getUsemasksFromProfile'}{'useflags'}=undef;
 	
 	return 1;
+}
+
+# Description:
+# Search packages by maintainer. Returns an array of packages.
+# @packages=$pxs->searchPackageByMaintainer($searchString,[$repo]);
+# Example:
+# @packages=$pxs->searchPackageByMaintainer('ian@gentoo.org');
+# @packages=$pxs->searchPackageByMaintainer('ian@gentoo.org','/usr/local/portage/');
+sub searchPackageByMaintainer {
+	my $self		= shift;
+	my $searchString	= shift;
+	my $repo		= shift;
+	my $dhc;
+	my $dhp;
+	my $tc;
+	my $tp;
+	my @matches		= ();
+	my @fields		= ();
+	
+	if (!$mode) { $mode='like'; }
+	$repo=$self->{'PORTDIR'} if (!$repo);
+	if (!-d $repo) { return (); }
+	
+	# - read categories >
+	foreach ($self->searchPackage('','like',$repo)) {
+		if (-e $repo.'/'.$_.'/metadata.xml') {
+			my $buffer=$self->getFileContents($repo.'/'.$_.'/metadata.xml');
+			if ($buffer =~ m/<email>$searchString(.*)?<\/email>/i) {
+				push(@matches,$_);
+			}
+			elsif ($buffer =~ m/<name>$searchString(.*)?<\/name>/i) {
+				push(@matches,$_);
+			}
+		}
+	}
+	
+	return (sort @matches);
+}
+
+# Description:
+# Search packages by herd. Returns an array of packages.
+# @packages=$pxs->searchPackageByHerd($searchString,[$repo]);
+# Example:
+# @packages=$pxs->searchPackageByHerd('perl');
+# @packages=$pxs->searchPackageByHerd('perl','/usr/local/portage/');
+sub searchPackageByHerd {
+	my $self		= shift;
+	my $searchString	= shift;
+	my $repo		= shift;
+	my $dhc;
+	my $dhp;
+	my $tc;
+	my $tp;
+	my @matches		= ();
+	my @fields		= ();
+	
+	if (!$mode) { $mode='like'; }
+	$repo=$self->{'PORTDIR'} if (!$repo);
+	if (!-d $repo) { return (); }
+	
+	# - read categories >
+	foreach ($self->searchPackage('','like',$repo)) {
+		if (-e $repo.'/'.$_.'/metadata.xml') {
+			my $buffer=$self->getFileContents($repo.'/'.$_.'/metadata.xml');
+			if ($buffer =~ m/<herd>$searchString(.*)?<\/herd>/i) {
+				push(@matches,$_);
+			}
+		}
+	}
+	
+	return (sort @matches);
 }
 
 1;

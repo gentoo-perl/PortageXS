@@ -6,7 +6,7 @@ package PortageXS;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS.pm,v 1.12 2007/04/19 09:07:09 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS.pm,v 1.13 2007/05/20 14:17:40 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -17,7 +17,7 @@ package PortageXS;
 #
 # -----------------------------------------------------------------------------
 
-$VERSION='0.02.06';
+$VERSION='0.02.07';
 
 use PortageXS::Core;
 use PortageXS::System;
