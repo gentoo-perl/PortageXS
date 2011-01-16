@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+use lib '../..';
+use PortageXS;
+
+my $pxs=PortageXS->new();
+
+foreach ($pxs->searchInstalledPackage('*')) {
+	my $e=(split(/\//,$_))[1].".ebuild";
+	print $e." -> ".$pxs->getEbuildName($e)."\n";
+}
