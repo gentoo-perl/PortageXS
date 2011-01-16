@@ -1,6 +1,23 @@
 Changes
 -------
 
+0.02.06
+	- fileBelongsToPackage(): Do not die if CONTENTS file is missing. (Reported by Michael Cummings <mcummings@gentoo.org>)
+	- Speedup functions getFilesOfInstalledPackage(), fileBelongsToPackage()
+	- Source cleanups
+	- New functions: disableColors(), getPackagesFromWorld(), recordPackageInWorld(), removePackageFromWorld()
+	- formatUseflags(): Also handle suffixes (% and *)
+	- added .cache dir to EXCLUDE_DIRS for use with paludis
+	- removed virtual dir from EXCLUDE_DIRS - we actually want virtuals in
+	- getPackagesFromCategory():
+		- Use PORTDIR by default
+		- New optional parameter to set the repository to use
+		- Check for dirs before trying to access them
+	- searchPackage(): Works - Feel free to use it now.
+	- Fixed bug #175175 - getArch() was not able to resolve the profile path if make.profile was an absolute path
+	- Apply fixes from bug #175175 to getProfilePath(); refactored getArch() and getUsemasksFromProfile()
+	- Make test getPortageXScategorylist() more robust
+
 0.02.05
 	- New functions: getEbuildName(), getUsedescs(), getCategories(), formatUseflags() (from demerge 0.032), sortUseflags(), getUsemasksFromProfile(), getProfilePath(), resetCaches()
 	- Fixed some function descriptions
@@ -23,7 +40,7 @@ Changes
 	- Initscript for the server
 	- Runtime optimizations
 	- Basic server and client implemented
-	
+
 0.02.02
 	- New functions: searchPackage(), getReponame(), resolveMirror(), getUsedesc()
 	- New example: searchPackage.pl, resolveMirror.pl, getUsedesc.pl

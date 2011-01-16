@@ -6,7 +6,7 @@ package PortageXS::UI::Console;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/UI/Console.pm,v 1.6 2007/04/09 15:03:51 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/UI/Console.pm,v 1.9 2007/04/15 11:13:25 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -27,6 +27,7 @@ our @EXPORT = qw(
 			setPrintColor
 			cmdAskUser
 			formatUseflags
+			disableColors
 		);
 
 # Description:
@@ -84,7 +85,7 @@ sub cmdAskUser {
 
 	# - loop until user has entered a valid option >
 	do {
-		print " ".$question." (".join("/",@options)."): ";
+		print ' '.$question.' ('.join('/',@options).'): ';
 		chomp($userInput = <STDIN>);
 		foreach $this_option (@options) {
 			if (lc($this_option) eq lc($userInput)) {
@@ -107,18 +108,20 @@ sub formatUseflags {
 	my @use1	= (); # +
 	my @use2	= (); # -
 	my %masked	= ();
+	my %c		= ();
+	my $this_use	= '';
 	
 	foreach ($self->getUsemasksFromProfile()) {
 		$masked{$_}=1;
 	}
 	
 	# - Sort - Needed for the right display order >
-	for (my $x=0;$x<=$#useflags;$x++) {
-		if (substr($useflags[$x],0,1) eq '-') {
-			push(@use2,$useflags[$x]);
+	foreach $this_use (@useflags) {
+		if ($this_use=~m/^-/) {
+			push(@use2,$this_use);
 		}
 		else {
-			push(@use1,$useflags[$x]);
+			push(@use1,$this_use);
 		}
 	}
 	@useflags=();
@@ -128,26 +131,60 @@ sub formatUseflags {
 	@use2=();
 	
 	# - Apply colors and use.mask >
-	for (my $x=0;$x<=$#useflags;$x++) {
-		if (substr($useflags[$x],0,1) eq '-') {
-			if ($masked{substr($useflags[$x],1,length($useflags[$x])-1)}) {
-				push(@use2,'('.$self->{'COLORS'}{'BLUE'}.$useflags[$x].$self->{'COLORS'}{'RESET'}.')');
-			}
-			else {
-				push(@use2,$self->{'COLORS'}{'BLUE'}.$useflags[$x].$self->{'COLORS'}{'RESET'});
-			}
+	foreach $this_use (@useflags) {
+		if ($this_use=~m/^-/) {
+			$c{'color'}='BLUE';
+			$c{'useflag'}=substr($this_use,1,length($this_use)-1);
+			$c{'prefix'}='-';
+			$c{'suffix'}='';
+			$c{'sort'}=2;
 		}
 		else {
-			if ($masked{$useflags[$x]}) {
-				push(@use1,'('.$self->{'COLORS'}{'RED'}.$useflags[$x].$self->{'COLORS'}{'RESET'}.')');
-			}
-			else {
-				push(@use1,$self->{'COLORS'}{'RED'}.$useflags[$x].$self->{'COLORS'}{'RESET'});
-			}
+			$c{'color'}='RED';
+			$c{'useflag'}=$this_use;
+			$c{'prefix'}='';
+			$c{'suffix'}='';
+			$c{'sort'}=1;
+		}
+		
+		if ($this_use=~m/%/) {
+			$c{'color'}='YELLOW';
+			$c{'suffix'}.='%';
+			$c{'useflag'}=~s/%//g;
+		}
+		
+		if ($this_use=~m/\*/) {
+			$c{'color'}='YELLOW';
+			$c{'suffix'}.='*';
+			$c{'useflag'}=~s/\*//g;
+		}
+		
+		$c{'compiled'}=$self->{'COLORS'}{$c{'color'}}.$c{'prefix'}.$c{'useflag'}.$self->{'COLORS'}{'RESET'}.$c{'suffix'};
+		
+		if ($masked{$c{'useflag'}}) {
+			$c{'compiled'}='('.$c{'compiled'}.')';
+		}
+		
+		if ($c{'sort'}==1) {
+			push (@use1,$c{'compiled'});
+		}
+		else {
+			push (@use2,$c{'compiled'});
 		}
 	}
 	
 	return @use1,@use2;
+}
+
+# Description:
+# Disables colors. / Unsets set colors in PortageXS.pm
+# $pxs->disableColors();
+sub disableColors {
+	my $self	= shift;
+	foreach my $k1 (keys %{$self->{'COLORS'}}) {
+		$self->{'COLORS'}{$k1}=undef;
+	}
+	return 1;
 }
 
 1;

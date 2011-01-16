@@ -6,7 +6,7 @@ package PortageXS::Useflags;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Useflags.pm,v 1.4 2007/04/09 15:03:51 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Useflags.pm,v 1.6 2007/04/19 09:05:16 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -132,7 +132,7 @@ sub getUsemasksFromProfile {
 			exit(0);
 		}
 		else {
-			$curPath=$self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'});
+			$curPath=$self->getProfilePath();
 		}
 		
 		while(1) {
@@ -156,7 +156,7 @@ sub getUsemasksFromProfile {
 		for($c=0;$c<=$#lines;$c++) {
 			next if $lines[$c]=~m/^#/;
 			next if $lines[$c] eq "\n";
-			next if $lines[$c] eq "";
+			next if $lines[$c] eq '';
 			
 			if (substr($lines[$c],0,1) eq '-') {
 				# - unmask use >
@@ -174,7 +174,7 @@ sub getUsemasksFromProfile {
 		}
 		
 		# - Setup cache >
-		$self->{'CACHE'}{'Useflags'}{'getUsemasksFromProfile'}{'useflags'}=join(" ",@useflags);
+		$self->{'CACHE'}{'Useflags'}{'getUsemasksFromProfile'}{'useflags'}=join(' ',@useflags);
 	}
 	else {
 		@useflags=split(/ /,$self->{'CACHE'}{'Useflags'}{'getUsemasksFromProfile'}{'useflags'});

@@ -6,7 +6,7 @@ package PortageXS::Core;
 #
 # author      : Christian Hartmann <ian@gentoo.org>
 # license     : GPL-2
-# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Core.pm,v 1.12 2007/04/09 15:03:51 ian Exp $
+# header      : $Header: /srv/cvsroot/portagexs/trunk/lib/PortageXS/Core.pm,v 1.16 2007/04/19 09:05:16 ian Exp $
 #
 # -----------------------------------------------------------------------------
 #
@@ -42,6 +42,9 @@ our @EXPORT = qw(
 			getCategories
 			getProfilePath
 			resetCaches
+			getPackagesFromWorld
+			recordPackageInWorld
+			removePackageFromWorld
 		);
 
 # Description:
@@ -51,17 +54,17 @@ our @EXPORT = qw(
 # $arch=$pxs->getArch();
 sub getArch {
 	my $self	= shift;
-	my $curPath	= "";
+	my $curPath	= '';
 	my @files	= ();
-	my $parent	= "";
-	my $buffer	= "";
+	my $parent	= '';
+	my $buffer	= '';
 	
 	if(!-e $self->{'MAKE_PROFILE_PATH'}) {
 		$self->print_err('Profile not set!');
 		exit(0);
 	}
 	else {
-		$curPath=$self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'});
+		$curPath=$self->getProfilePath();
 	}
 	
 	while(1) {
@@ -74,7 +77,7 @@ sub getArch {
 		$curPath.='/'.$parent;
 	}
 	
-	$buffer.=$self->getFileContents("/etc/make.conf").$self->getFileContents("/etc/make.globals");
+	$buffer.=$self->getFileContents('/etc/make.conf').$self->getFileContents('/etc/make.globals');
 	foreach(@files) {
 		$buffer.=$self->getFileContents($_);
 	}
@@ -103,7 +106,7 @@ sub getPortdir {
 		return $self->{'PORTDIR'};
 	}
 	else {
-		$self->{'PORTDIR'}=$self->getParamFromFile($self->getFileContents("/etc/make.globals").$self->getFileContents("/etc/make.conf"),"PORTDIR","lastseen");
+		$self->{'PORTDIR'}=$self->getParamFromFile($self->getFileContents('/etc/make.globals').$self->getFileContents('/etc/make.conf'),'PORTDIR','lastseen');
 		return $self->{'PORTDIR'};
 	}
 }
@@ -127,7 +130,7 @@ sub getPortdirOverlay {
 # Returnvalue is the content of the given file.
 # $filecontent=$pxs->getFileContents($file);
 sub getFileContents {
-	open(FH,"<".$_[1]) or die('Cannot open file '.$_[1]);
+	open(FH,'<'.$_[1]) or die('Cannot open file '.$_[1]);
 	my $content = do{local $/; <FH>};
 	close(FH);
 	return $content;
@@ -139,7 +142,6 @@ sub getFileContents {
 sub searchInstalledPackage {
 	my $self		= shift;
 	my $searchString	= shift; if (! $searchString) { $searchString=''; }
-	my $int_c		= 0;
 	my @matches		= ();
 	my $s_cat		= '';
 	my $s_pak		= '';
@@ -183,7 +185,7 @@ sub searchInstalledPackage {
 				while (defined($tp = $dhp->read)) {
 					# - check if packagename matches
 					#   (faster if we already check it now) >
-					if ($tp =~m/$s_pak/i || $s_pak eq "") {
+					if ($tp =~m/$s_pak/i || $s_pak eq '') {
 						# - not excluded and $_ is a dir?
 						if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp) {
 							if (($s_cat ne '') && ($m_cat)) {
@@ -205,84 +207,84 @@ sub searchInstalledPackage {
 }
 
 # Description:
-# DO NOT USE THIS FUNCTION AS IT WILL MOST PROBABLY CHANGE IN THE FUTURE!
-# TODO
+# Search for packages in given repository.
+# @packages=$pxs->searchPackage($searchString [,$mode, $repo] );
+#
+# Parameters:
+# searchString: string to search for
 # mode: like || exact
+# repo: repository to search in
+#
+# Examples:
+# @packages=$pxs->searchPackage('perl');
+# @packages=$pxs->searchPackage('perl','exact');
+# @packages=$pxs->searchPackage('perl','like','/usr/portage');
+# @packages=$pxs->searchPackage('git','exact','/usr/local/portage');
 sub searchPackage {
 	my $self		= shift;
 	my $searchString	= shift;
 	my $mode		= shift;
-	my $int_c		= 0;
+	my $repo		= shift;
 	my $dhc;
 	my $dhp;
 	my $tc;
 	my $tp;
 	my @matches		= ();
-	my @repos		= ();
-	my $repo_name		= '';
 	
 	if (!$mode) { $mode='like'; }
-	
-	# - get all repos >
-	push(@repos,$self->{'PORTDIR'});
-	push(@repos,$self->getPortdirOverlay());
+	$repo=$self->{'PORTDIR'} if (!$repo);
+	if (!-d $repo) { return (); }
 	
 	# - escape special chars >
 	if ($mode eq 'like') {
 		$searchString =~ s/\+/\\\+/g;
 		
 		# - read categories >
-		foreach $this_repodir (@repos) {
-			$repo_name = $self->getReponame($this_repodir);
-			$dhc = new DirHandle($this_repodir);
-			if (defined $dhc) {
-				while (defined($tc = $dhc->read)) {
-					# - not excluded and $_ is a dir?
-					if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $this_repodir.'/'.$tc) {
-						$dhp = new DirHandle($this_repodir.'/'.$tc);
-						while (defined($tp = $dhp->read)) {
-							# - look up if entry matches the search
-							#  (much faster if we already check now) >
-							if ($tp =~m/$searchString/i) {
-								# - not excluded and $_ is a dir?
-								if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $this_repodir.'/'.$tc.'/'.$tp) {
-									push(@matches,$repo_name.':'.$tc.'/'.$tp);
-								}
+		$dhc = new DirHandle($repo);
+		if (defined $dhc) {
+			while (defined($tc = $dhc->read)) {
+				# - not excluded and $_ is a dir?
+				if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $repo.'/'.$tc) {
+					$dhp = new DirHandle($repo.'/'.$tc);
+					while (defined($tp = $dhp->read)) {
+						# - look up if entry matches the search
+						#  (much faster if we already check now) >
+						if ($tp =~m/$searchString/i) {
+							# - not excluded and $_ is a dir?
+							if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $repo.'/'.$tc.'/'.$tp) {
+								push(@matches,$tc.'/'.$tp);
 							}
 						}
-						undef $dhp;
 					}
+					undef $dhp;
 				}
 			}
-			undef $dhc;
 		}
+		undef $dhc;
 	}
 	elsif ($mode eq 'exact') {
 		# - read categories >
-		foreach $this_repodir (@repos) {
-			$repo_name = $self->getReponame($this_repodir);
-			$dhc = new DirHandle($this_repodir);
-			if (defined $dhc) {
-				while (defined($tc = $dhc->read)) {
-					# - not excluded and $_ is a dir?
-					if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $this_repodir.'/'.$tc) {
-						$dhp = new DirHandle($this_repodir.'/'.$tc);
-						while (defined($tp = $dhp->read)) {
-							# - look up if entry matches the search
-							#  (much faster if we already check now) >
-							if ($tp eq $searchString) {
-								# - not excluded and $_ is a dir?
-								if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $this_repodir.'/'.$tc.'/'.$tp) {
-									push(@matches,$repo_name.':'.$tc.'/'.$tp);
-								}
+		$dhc = new DirHandle($repo);
+		if (defined $dhc) {
+			while (defined($tc = $dhc->read)) {
+				# - not excluded and $_ is a dir?
+				if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $repo.'/'.$tc) {
+					$dhp = new DirHandle($repo.'/'.$tc);
+					while (defined($tp = $dhp->read)) {
+						# - look up if entry matches the search
+						#  (much faster if we already check now) >
+						if ($tp eq $searchString) {
+							# - not excluded and $_ is a dir?
+							if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $repo.'/'.$tc.'/'.$tp) {
+								push(@matches,$tc.'/'.$tp);
 							}
 						}
-						undef $dhp;
 					}
+					undef $dhp;
 				}
 			}
-			undef $dhc;
 		}
+		undef $dhc;
 	}
 	
 	return (sort @matches);
@@ -301,7 +303,7 @@ sub getParamFromFile {
 	my $c		= 0;
 	my $d		= 0;
 	my @lines	= ();
-	my $value	= ""; # value of $param
+	my $value	= ''; # value of $param
 	
 	# - split file in lines >
 	@lines = split(/\n/,$file);
@@ -316,7 +318,7 @@ sub getParamFromFile {
 			# single-line with quotationmarks >
 			$value=$1;
 		
-			if ($mode eq "firstseen") {
+			if ($mode eq 'firstseen') {
 				# - 6. clean up value >
 				$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
 				$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
@@ -327,7 +329,7 @@ sub getParamFromFile {
 		}
 		elsif ($lines[$c]=~/$param="(.*)/) {
 			# multi-line with quotationmarks >
-			$value=$1." ";
+			$value=$1.' ';
 			for($d=$c+1;$d<=$#lines;$d++) {
 				# - look for quotationmark >
 				if ($lines[$d]=~/(.*)"?/) {
@@ -337,11 +339,11 @@ sub getParamFromFile {
 				}
 				else {
 					# - no quotationmark found; append line contents to $value >
-					$value.=$lines[$d]." ";
+					$value.=$lines[$d].' ';
 				}
 			}
 		
-			if ($mode eq "firstseen") {
+			if ($mode eq 'firstseen') {
 				# - clean up value >
 				$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
 				$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
@@ -354,7 +356,7 @@ sub getParamFromFile {
 			# - single-line without quotationmarks >
 			$value=$1;
 			
-			if ($mode eq "firstseen") {
+			if ($mode eq 'firstseen') {
 				# - 6. clean up value >
 				$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
 				$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
@@ -380,7 +382,7 @@ sub getParamFromFile {
 sub getUseSettingsOfInstalledPackage {
 	my $self		= shift;
 	my $package		= shift;
-	my $tmp_filecontents	= "";
+	my $tmp_filecontents	= '';
 	my @package_IUSE	= ();
 	my @package_USE		= ();
 	my @USEs		= ();
@@ -393,7 +395,7 @@ sub getUseSettingsOfInstalledPackage {
 	}
 	$tmp_filecontents	=~s/\n//g;
 	@package_IUSE		= split(/ /,$tmp_filecontents);
-	if (-e $self->{'PKG_DB_DIR'}."/".$package."/USE") {
+	if (-e $self->{'PKG_DB_DIR'}.'/'.$package.'/USE') {
 		$tmp_filecontents	= $self->getFileContents($self->{'PKG_DB_DIR'}.'/'.$package.'/USE');
 	}
 	$tmp_filecontents	=~s/\n//g;
@@ -453,26 +455,30 @@ sub getPortageXScategorylist {
 
 # Description:
 # Returns all available packages from the given category.
-# @listOfPackages=$pxs->getPackagesFromCategory($category);
+# @listOfPackages=$pxs->getPackagesFromCategory($category,[$repo]);
 # E.g.:
-# @listOfPackages=$pxs->getPackagesFromCategory("dev-perl");
+# @listOfPackages=$pxs->getPackagesFromCategory("dev-perl","/usr/portage");
 sub getPackagesFromCategory {
 	my $self	= shift;
 	my $category	= shift;
+	my $repo	= shift;
 	my $dhp;
 	my $tp;
 	my @packages	= ();
 	
 	return () if !$category;
+	$repo=$self->{'PORTDIR'} if (!$repo);
 	
-	$dhp = new DirHandle($self->{'PORTDIR'}.'/'.$category);
-	while (defined($tp = $dhp->read)) {
-		# - not excluded and $_ is a dir?
-		if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $self->{'PORTDIR'}.'/'.$category.'/'.$tp) {
-			push(@packages,$tp);
+	if (-d $repo.'/'.$category) {
+		$dhp = new DirHandle($repo.'/'.$category);
+		while (defined($tp = $dhp->read)) {
+			# - not excluded and $_ is a dir?
+			if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $repo.'/'.$category.'/'.$tp) {
+				push(@packages,$tp);
+			}
 		}
+		undef $dhp;
 	}
-	undef $dhp;
 
 	return @packages;
 }
@@ -485,7 +491,6 @@ sub fileBelongsToPackage {
 	my $self	= shift;
 	my $file	= shift;
 
-	my $int_c	= 0;
 	my @matches	= ();
 	my $dhc;
 	my $dhp;
@@ -500,17 +505,14 @@ sub fileBelongsToPackage {
 			if (! $self->{EXCLUDE_DIRS}{$tc} && -d $self->{'PKG_DB_DIR'}.'/'.$tc) {
 				$dhp = new DirHandle($self->{'PKG_DB_DIR'}.'/'.$tc);
 				while (defined($tp = $dhp->read)) {
-					# - not excluded and $_ is a dir?
-					if (! $self->{EXCLUDE_DIRS}{$tp} && -d $self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp) {
-						my $data = $self->getFileContents($self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp.'/CONTENTS');
-						my @lines = split(/\n/,$data);
-						foreach (@lines) {
-							my $thisfile = (split(/ /,$_))[1];
-							if ($thisfile eq $file) {
-								push(@matches,$tc.'/'.$tp);
-							}
+					open(FH,'<'.$self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp.'/CONTENTS') or next;
+					while (<FH>) {
+						if ($_=~m/$file/) {
+							push(@matches,$tc.'/'.$tp);
+							last;
 						}
 					}
+					close(FH);
 				}
 				undef $dhp;
 			}
@@ -531,9 +533,7 @@ sub getFilesOfInstalledPackage {
 	
 	# - find installed versions & loop >
 	foreach ($self->searchInstalledPackage($package)) {
-		my $data = $self->getFileContents($self->{PKG_DB_DIR}.'/'.$_.'/CONTENTS');
-		my @lines = split(/\n/,$data);
-		foreach (@lines) {
+		foreach (split(/\n/,$self->getFileContents($self->{PKG_DB_DIR}.'/'.$_.'/CONTENTS'))) {
 			push(@files,(split(/ /,$_))[1]);
 		}
 	}
@@ -613,7 +613,6 @@ sub resolveMirror {
 sub getCategories {
 	my $self	= shift;
 	my $repo	= shift;
-	my @categories	= ();
 	
 	if (-e $repo.'/profiles/categories') {
 		return split(/\n/,$self->getFileContents($repo.'/profiles/categories'));
@@ -627,7 +626,80 @@ sub getCategories {
 # $path=$pxs->getProfilePath();
 sub getProfilePath {
 	my $self	= shift;
-	return $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'});
+	
+	if (-e $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'})) {
+		return $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'});
+	}
+	elsif (-e readlink($self->{'MAKE_PROFILE_PATH'})) {
+		return readlink($self->{'MAKE_PROFILE_PATH'});
+	}
+	
+	return undef;
+}
+
+# Description:
+# Returns all packages that are in the world file.
+# @packages=$pxs->getPackagesFromWorld();
+sub getPackagesFromWorld {
+	my $self	= shift;
+	
+	if (-e $self->{'PATH_TO_WORLDFILE'}) {
+		return split(/\n/,$self->getFileContents($self->{'PATH_TO_WORLDFILE'}));
+	}
+	
+	return ();
+}
+
+# Description:
+# Records package in world file.
+# $pxs->recordPackageInWorld($package);
+sub recordPackageInWorld {
+	my $self	= shift;
+	my $package	= shift;
+	my %world	= ();
+	
+	# - get packages already recorded in world >
+	foreach ($self->getPackagesFromWorld()) {
+		$world{$_}=1;
+	}
+	
+	# - add $package >
+	$world{$package}=1;
+	
+	# - write world file >
+	open(FH,'>'.$self->{'PATH_TO_WORLDFILE'}) or die('Cannot write to world file!');
+	foreach (keys %world) {
+		print FH $_,"\n";
+	}
+	close(FH);
+	
+	return 1;
+}
+
+# Description:
+# Removes package from world file.
+# $pxs->removePackageFromWorld($package);
+sub removePackageFromWorld {
+	my $self	= shift;
+	my $package	= shift;
+	my %world	= ();
+	
+	# - get packages already recorded in world >
+	foreach ($self->getPackagesFromWorld()) {
+		$world{$_}=1;
+	}
+	
+	# - remove $package >
+	$world{$package}=0;
+	
+	# - write world file >
+	open(FH,'>'.$self->{'PATH_TO_WORLDFILE'}) or die('Cannot write to world file!');
+	foreach (keys %world) {
+		print FH $_,"\n" if ($world{$_});
+	}
+	close(FH);
+	
+	return 1;
 }
 
 # Description:

@@ -7,5 +7,8 @@ use lib '../..';
 use PortageXS;
 
 my $pxs=PortageXS->new();
-print "List of available packages in category $ARGV[0]:\n";
-print join("\n",$pxs->getPackagesFromCategory($ARGV[0]))."\n";
+my $repo=$pxs->getPortdir();
+exit(0) if !$ARGV[0];
+$repo=$ARGV[1] if $ARGV[1];
+print "List of available packages in category $ARGV[0] in repo $repo:\n";
+print join("\n",$pxs->getPackagesFromCategory($ARGV[0],$repo))."\n";

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-use Test::Simple tests => 31;
+use Test::Simple tests => 32;
 
 use lib '../lib/';
 use lib 'lib/';
@@ -45,9 +45,7 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 # - getPortageXScategorylist >
 {
 	my $oldpath = $pxs->{'PORTAGEXS_ETC_DIR'};
-	if (!-d $pxs->{'PORTAGEXS_ETC_DIR'}) {
-		$pxs->{'PORTAGEXS_ETC_DIR'}="./".$pxs->{'PORTAGEXS_ETC_DIR'};
-	}
+	$pxs->{'PORTAGEXS_ETC_DIR'}="./".$pxs->{'PORTAGEXS_ETC_DIR'};
 	my @entries = $pxs->getPortageXScategorylist('perl');
 	ok($#entries>0,'getPortageXScategorylist - perl: '.join(' ',@entries));
 	$pxs->{'PORTAGEXS_ETC_DIR'}=$oldpath;
@@ -114,6 +112,12 @@ ok(!$pxs->fileBelongsToPackage('/this/path/most/likely/does/not/exist'),'fileBel
 {
 	my @cats = $pxs->getCategories($pxs->getPortdir());
 	ok(($#cats+1),'Categories found: '.($#cats+1));
+}
+
+# - getPackagesFromWorld >
+{
+	my @packages = $pxs->getPackagesFromWorld();
+	ok(($#packages+1),'Packages found in world: '.($#packages+1));
 }
 
 # - getEbuildName >
