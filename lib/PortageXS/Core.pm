@@ -33,6 +33,8 @@ our @EXPORT = qw(
 			getParamFromFile
 			getUseSettingsOfInstalledPackage
 			getAvailableEbuilds
+			getAvailableEbuildVersions
+			getBestEbuildVersion
 			getPortageXScategorylist
 			getAvailableArches
 			getPackagesFromCategory
@@ -480,6 +482,31 @@ sub getAvailableEbuilds {
 	}
 	
 	return @packagelist;
+}
+
+# Description:
+# @listOfEbuildVersions=$pxs->getAvailableEbuildVersions(category/packagename,[$repo]);
+sub getAvailableEbuildVersions {
+	my $self	= shift;
+	my $catPackage	= shift;
+	my $repo	= shift;
+	my @packagelist;
+
+	@packagelist = map { $self->getEbuildVersion($_) } $self->getAvailableEbuilds($catPackage,$repo);
+
+	return @packagelist;
+}
+
+# Description:
+# $bestVersion=$pxs->getBestEbuildVersion(category/packagename,[$repo]);
+sub getBestEbuildVersion {
+	my $self	= shift;
+	my $catPackage	= shift;
+	my $repo	= shift;
+
+	my @versions = map { PortageXS::Version->new($_) } $self->getAvailableEbuildVersions($catPackage,$repo);
+	my @best_version = sort { $a <=> $b } (@versions);
+	return $best_version[-1];
 }
 
 # Description:

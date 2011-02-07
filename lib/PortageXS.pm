@@ -17,10 +17,11 @@ package PortageXS;
 #
 # -----------------------------------------------------------------------------
 
-$VERSION='0.02.09';
+$VERSION='0.2.11';
 
 use PortageXS::Core;
 use PortageXS::System;
+use PortageXS::Version;
 use PortageXS::UI::Console;
 use PortageXS::Useflags;
 use Term::ANSIColor;
@@ -42,6 +43,7 @@ our @EXPORT = qw(
 			print_info
 			getPortageXScategorylist
 			getAvailableEbuilds
+			getBestEbuildVersion
 			cmdExecute
 			getAvailableArches
 			getPackagesFromCategory

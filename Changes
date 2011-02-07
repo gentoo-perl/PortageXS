@@ -1,5 +1,7 @@
 Changes
 -------
+0.2.11
+	- Add PortageXS::Version (taken from CPANPLUS::Dist::Gentoo)
 
 0.02.10
 	- Fixed bug #265102
