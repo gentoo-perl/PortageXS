@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 package PortageXS::UI::Spinner;
 
 # -----------------------------------------------------------------------------
@@ -25,10 +28,11 @@ our @EXPORT = qw(
 		);
 
 sub new {
-	my $self	= {};
-	$self->{'spinstate'}=0;
+	my $self	= shift;
+	my $spin = bless {}, $self;
+	$spin->{'spinstate'}=0;
 	$|=1;
-	return bless($self);
+	return $spin;
 }
 
 sub spin {

@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 package PortageXS::Core;
 
 # -----------------------------------------------------------------------------
@@ -100,6 +103,7 @@ sub getPortageMakeParam {
 	my @profilefiles	= ();
 	my $v			= '';
 	my $parent		= '';
+	my $curPath;
 	
 	if(!-e $self->{'MAKE_PROFILE_PATH'}) {
 		$self->print_err('Profile not set!');
@@ -123,7 +127,7 @@ sub getPortageMakeParam {
 		$importer->shellobj->envcmd('set');
 		$importer->run();
 		
-		if ($ENV{$param} ne '') {
+		if ($ENV{$param}) {
 			$v=$ENV{$param};
 			$v=~s/\\t/ /g;
 			$v=~s/\t/ /g;
@@ -192,9 +196,13 @@ sub getPortdirOverlay {
 # Returnvalue is the content of the given file.
 # $filecontent=$pxs->getFileContents($file);
 sub getFileContents {
-	open(FH,'<'.$_[1]) or die('Cannot open file '.$_[1]);
-	my $content = do{local $/; <FH>};
-	close(FH);
+	my $self = shift;
+	my $file = shift;
+	my $content = do {
+		local $/;
+		open my $fh, '<', $file or die "Cannot open file $file";
+		<$fh>;
+	};
 	return $content;
 }
 
@@ -377,7 +385,7 @@ sub getParamFromFile {
 		$lines[$c]=~s/#(.*)//g;
 		
 		# - remove leading whitespaces and tabs >
-		$lines[$c]=~s/^[ |\t]+//;
+		$lines[$c]=~s/^[ \t]+//;
 		
 		if ($lines[$c]=~/^$param="(.*)"/) {
 			# single-line with quotationmarks >
@@ -412,8 +420,8 @@ sub getParamFromFile {
 	}
 	
 	# - clean up value >
-	$value=~s/^[ |\t]+//; # remove leading whitespaces and tabs
-	$value=~s/[ |\t]+$//; # remove trailing whitespaces and tabs
+	$value=~s/^[ \t]+//; # remove leading whitespaces and tabs
+	$value=~s/[ \t]+$//; # remove trailing whitespaces and tabs
 	$value=~s/\t/ /g;     # replace tabs with whitespaces
 	$value=~s/ {2,}/ /g;  # replace 1+ whitespaces with 1 whitespace
 	
@@ -431,8 +439,6 @@ sub getUseSettingsOfInstalledPackage {
 	my @package_USE		= ();
 	my @USEs		= ();
 	my $hasuse		= '';
-	my $thisUSE		= '';
-	my $thisIUSE		= '';
 	
 	if (-e $self->{'PKG_DB_DIR'}.'/'.$package.'/IUSE') {
 		$tmp_filecontents	= $self->getFileContents($self->{'PKG_DB_DIR'}.'/'.$package.'/IUSE');
@@ -445,10 +451,10 @@ sub getUseSettingsOfInstalledPackage {
 	$tmp_filecontents	=~s/\n//g;
 	@package_USE		= split(/ /,$tmp_filecontents);
 	
-	foreach $thisIUSE (@package_IUSE) {
+	foreach my $thisIUSE (@package_IUSE) {
 		next if ($thisIUSE eq '');
 		$hasuse = '-';
-		foreach $thisUSE (@package_USE) {
+		foreach my $thisUSE (@package_USE) {
 			if ($thisIUSE eq $thisUSE) {
 				$hasuse='';
 				last;
@@ -578,14 +584,14 @@ sub fileBelongsToPackage {
 			if (! $self->{EXCLUDE_DIRS}{$tc} && -d $self->{'PKG_DB_DIR'}.'/'.$tc) {
 				$dhp = new DirHandle($self->{'PKG_DB_DIR'}.'/'.$tc);
 				while (defined($tp = $dhp->read)) {
-					open(FH,'<'.$self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp.'/CONTENTS') or next;
-					while (<FH>) {
+					open my $fh, '<', $self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp.'/CONTENTS' or next;
+					while (<$fh>) {
 						if ($_=~m/$file/) {
 							push(@matches,$tc.'/'.$tp);
 							last;
 						}
 					}
-					close(FH);
+					close $fh;
 				}
 				undef $dhp;
 			}
@@ -707,7 +713,7 @@ sub getProfilePath {
 		return readlink($self->{'MAKE_PROFILE_PATH'});
 	}
 	
-	return undef;
+	return;
 }
 
 # Description:
@@ -740,11 +746,11 @@ sub recordPackageInWorld {
 	$world{$package}=1;
 	
 	# - write world file >
-	open(FH,'>'.$self->{'PATH_TO_WORLDFILE'}) or die('Cannot write to world file!');
+	open my $fh, '>', $self->{'PATH_TO_WORLDFILE'} or die('Cannot write to world file!');
 	foreach (keys %world) {
-		print FH $_,"\n";
+		print $fh $_,"\n";
 	}
-	close(FH);
+	close $fh;
 	
 	return 1;
 }
@@ -766,11 +772,11 @@ sub removePackageFromWorld {
 	$world{$package}=0;
 	
 	# - write world file >
-	open(FH,'>'.$self->{'PATH_TO_WORLDFILE'}) or die('Cannot write to world file!');
+	open my $fh,'>', $self->{'PATH_TO_WORLDFILE'} or die('Cannot write to world file!');
 	foreach (keys %world) {
-		print FH $_,"\n" if ($world{$_});
+		print $fh $_,"\n" if ($world{$_});
 	}
-	close(FH);
+	close $fh;
 	
 	return 1;
 }
@@ -823,7 +829,7 @@ sub searchPackageByMaintainer {
 	my @matches		= ();
 	my @fields		= ();
 	
-	if (!$mode) { $mode='like'; }
+	#if (!$mode) { $mode='like'; }
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
 	
@@ -860,7 +866,7 @@ sub searchPackageByHerd {
 	my @matches		= ();
 	my @fields		= ();
 	
-	if (!$mode) { $mode='like'; }
+	#if (!$mode) { $mode='like'; }
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
 	

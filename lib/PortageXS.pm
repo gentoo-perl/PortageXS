@@ -1,4 +1,8 @@
+use strict;
+use warnings;
+
 package PortageXS;
+# ABSTRACT: Portage abstraction layer for perl
 
 # -----------------------------------------------------------------------------
 #
@@ -17,7 +21,7 @@ package PortageXS;
 #
 # -----------------------------------------------------------------------------
 
-$VERSION='0.2.11';
+our $VERSION='0.2.11';
 
 use PortageXS::Core;
 use PortageXS::System;
@@ -56,53 +60,53 @@ our @EXPORT = qw(
 		);
 
 sub new {
-	my $self	= {};
+	my $self	= shift ;
 
-	bless($self);
+	my $pxs = bless {}, $self;
 
-	$self->{'VERSION'}			= $VERSION;
+	$pxs->{'VERSION'}			= $VERSION;
 	
-	$self->{'PORTDIR'}			= $self->getPortdir();
-	$self->{'PKG_DB_DIR'}			= '/var/db/pkg/';
-	$self->{'PATH_TO_WORLDFILE'}		= '/var/lib/portage/world';
-	$self->{'IS_INITIALIZED'}		= 1;
+	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
+	$pxs->{'PKG_DB_DIR'}			= '/var/db/pkg/';
+	$pxs->{'PATH_TO_WORLDFILE'}		= '/var/lib/portage/world';
+	$pxs->{'IS_INITIALIZED'}		= 1;
 	
-	$self->{'EXCLUDE_DIRS'}{'.'}		= 1;
-	$self->{'EXCLUDE_DIRS'}{'..'}		= 1;
-	$self->{'EXCLUDE_DIRS'}{'metadata'}	= 1;
-	$self->{'EXCLUDE_DIRS'}{'licenses'}	= 1;
-	$self->{'EXCLUDE_DIRS'}{'eclass'}	= 1;
-	$self->{'EXCLUDE_DIRS'}{'distfiles'}	= 1;
-	$self->{'EXCLUDE_DIRS'}{'profiles'}	= 1;
-	$self->{'EXCLUDE_DIRS'}{'CVS'}		= 1;
-	$self->{'EXCLUDE_DIRS'}{'.cache'}	= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'.'}		= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'..'}		= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'metadata'}	= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'licenses'}	= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'eclass'}	= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'distfiles'}	= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'profiles'}	= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'CVS'}		= 1;
+	$pxs->{'EXCLUDE_DIRS'}{'.cache'}	= 1;
 	
-	$self->{'PORTAGEXS_ETC_DIR'}		= '/etc/pxs/';
-	$self->{'ETC_DIR'}			= '/etc/';
-	$self->{'MAKE_PROFILE_PATH'}		= '/etc/make.profile';
+	$pxs->{'PORTAGEXS_ETC_DIR'}		= '/etc/pxs/';
+	$pxs->{'ETC_DIR'}			= '/etc/';
+	$pxs->{'MAKE_PROFILE_PATH'}		= '/etc/make.profile';
 	
 	# - init colors >
-	$self->{'COLORS'}{'YELLOW'}		= color('bold yellow');
-	$self->{'COLORS'}{'GREEN'}		= color('green');
-	$self->{'COLORS'}{'LIGHTGREEN'}		= color('bold green');
-	$self->{'COLORS'}{'WHITE'}		= color('bold white');
-	$self->{'COLORS'}{'CYAN'}		= color('bold cyan');
-	$self->{'COLORS'}{'RED'}		= color('bold red');
-	$self->{'COLORS'}{'BLUE'}		= color('bold blue');
-	$self->{'COLORS'}{'RESET'}		= color('reset');
+	$pxs->{'COLORS'}{'YELLOW'}		= color('bold yellow');
+	$pxs->{'COLORS'}{'GREEN'}		= color('green');
+	$pxs->{'COLORS'}{'LIGHTGREEN'}		= color('bold green');
+	$pxs->{'COLORS'}{'WHITE'}		= color('bold white');
+	$pxs->{'COLORS'}{'CYAN'}		= color('bold cyan');
+	$pxs->{'COLORS'}{'RED'}			= color('bold red');
+	$pxs->{'COLORS'}{'BLUE'}		= color('bold blue');
+	$pxs->{'COLORS'}{'RESET'}		= color('reset');
 	
-	if (lc($self->getParamFromFile($self->getFileContents('/etc/make.conf'),'NOCOLOR','lastseen')) eq 'true') {
-		$self->{'COLORS'}{'YELLOW'}		= '';
-		$self->{'COLORS'}{'GREEN'}		= '';
-		$self->{'COLORS'}{'LIGHTGREEN'}		= '';
-		$self->{'COLORS'}{'WHITE'}		= '';
-		$self->{'COLORS'}{'CYAN'}		= '';
-		$self->{'COLORS'}{'RED'}		= '';
-		$self->{'COLORS'}{'BLUE'}		= '';
-		$self->{'COLORS'}{'RESET'}		= '';
+	if (lc($pxs->getParamFromFile($pxs->getFileContents('/etc/make.conf'),'NOCOLOR','lastseen')) eq 'true') {
+		$pxs->{'COLORS'}{'YELLOW'}		= '';
+		$pxs->{'COLORS'}{'GREEN'}		= '';
+		$pxs->{'COLORS'}{'LIGHTGREEN'}		= '';
+		$pxs->{'COLORS'}{'WHITE'}		= '';
+		$pxs->{'COLORS'}{'CYAN'}		= '';
+		$pxs->{'COLORS'}{'RED'}			= '';
+		$pxs->{'COLORS'}{'BLUE'}		= '';
+		$pxs->{'COLORS'}{'RESET'}		= '';
 	}
 
-	return $self;
+	return $pxs;
 }
 
 

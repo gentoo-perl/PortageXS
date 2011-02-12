@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 package PortageXS::UI::Console;
 
 # -----------------------------------------------------------------------------
@@ -77,7 +80,6 @@ sub cmdAskUser {
 	my $option	= shift;
 	my @options	= ();
 	my $userInput	= "";
-	my $this_option	= "";
 	my $valid	= 0;
 	
 	# - split comma seperated options >
@@ -87,7 +89,7 @@ sub cmdAskUser {
 	do {
 		print ' '.$question.' ('.join('/',@options).'): ';
 		chomp($userInput = <STDIN>);
-		foreach $this_option (@options) {
+		foreach my $this_option (@options) {
 			if (lc($this_option) eq lc($userInput)) {
 				$valid=1;
 				last;
@@ -109,14 +111,13 @@ sub formatUseflags {
 	my @use2	= (); # -
 	my %masked	= ();
 	my %c		= ();
-	my $this_use	= '';
 	
 	foreach ($self->getUsemasksFromProfile()) {
 		$masked{$_}=1;
 	}
 	
 	# - Sort - Needed for the right display order >
-	foreach $this_use (@useflags) {
+	foreach my $this_use (@useflags) {
 		if ($this_use=~m/^-/) {
 			push(@use2,$this_use);
 		}
@@ -131,7 +132,7 @@ sub formatUseflags {
 	@use2=();
 	
 	# - Apply colors and use.mask >
-	foreach $this_use (@useflags) {
+	foreach my $this_use (@useflags) {
 		if ($this_use=~m/^-/) {
 			$c{'color'}='BLUE';
 			$c{'useflag'}=substr($this_use,1,length($this_use)-1);
@@ -182,7 +183,7 @@ sub formatUseflags {
 sub disableColors {
 	my $self	= shift;
 	foreach my $k1 (keys %{$self->{'COLORS'}}) {
-		$self->{'COLORS'}{$k1}=undef;
+		$self->{'COLORS'}{$k1}='';
 	}
 	return 1;
 }

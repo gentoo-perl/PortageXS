@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 package PortageXS::Useflags;
 
 # -----------------------------------------------------------------------------
@@ -96,19 +99,17 @@ sub getUsedescs {
 sub sortUseflags {
 	my $self	= shift;
 	my @useflags	= @_;
-	my @use1	= (); # +
-	my @use2	= (); # -
-	
-	for (my $x=0;$x<=$#useflags;$x++) {
-		if (substr($useflags[$x],0,1) eq '-') {
-			push(@use2,$useflags[$x]);
+	my (@use1,@use2);
+
+	foreach my $useflag (sort @useflags) {
+		if (substr($useflag,0,1) eq '-') {
+			push @use1, $useflag;
 		}
 		else {
-			push(@use1,$useflags[$x]);
+			push @use2, $useflag;
 		}
 	}
-	
-	return sort(@use1),sort(@use2);
+	return (@use2,@use1);
 }
 
 # Description:
