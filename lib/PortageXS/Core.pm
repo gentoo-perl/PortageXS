@@ -26,6 +26,7 @@ require Exporter;
 our @ISA = qw(Exporter PortageXS);
 our @EXPORT = qw(
 			getArch
+			getProfileTree
 			getPortageMakeParam
 			getPortageMakeParamHelper
 			getPortdir
@@ -69,24 +70,34 @@ sub getArch {
 }
 
 # Description:
+# Returns the profile tree as array
+# "depth ﬁrst, left to right, with duplicate parent paths being sourced 
+# for every time they are encountered"
+sub getProfileTree {
+	my $self	= shift;
+	my $curPath	= shift;
+	my @path;
+
+	if ( -e "$curPath/parent" ) {
+		my $parent=$self->getFileContents("$curPath/parent");
+		foreach (split /\n/, $parent) {
+			push @path, $self->getProfileTree("$curPath/$_");
+		}
+	}
+	push @path, $curPath;
+	return @path;
+}
+
+# Description:
 # Helper for getPortageMakeParam()
 sub getPortageMakeParamHelper {
 	my $self	= shift;
 	my $curPath	= shift;
 	my @files	= ();
-	my $parent	= '';
 
-	if (-e $curPath.'/make.defaults') {
-		push(@files,$curPath.'/make.defaults');
+	foreach my $profile ( $self->getProfileTree($curPath) ) {
+		push(@files,"$profile/make.defaults") if (-e "$profile/make.defaults");
 	}
-	if (! -e $curPath.'/parent') {
-		return @files;
-	}
-	$parent=$self->getFileContents($curPath.'/parent');
-	foreach (split(/\n/,$parent)) {
-		push(@files,$self->getPortageMakeParamHelper($curPath.'/'.$_));
-	}
-
 	return @files;
 }
 
@@ -100,7 +111,6 @@ sub getPortageMakeParam {
 	my $param		= shift;
 	my @files		= ();
 	my @etcfiles		= qw(/etc/make.globals /etc/make.conf);
-	my @profilefiles	= ();
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
@@ -113,8 +123,7 @@ sub getPortageMakeParam {
 		$curPath=$self->getProfilePath();
 	}
 	
-	@profilefiles=$self->getPortageMakeParamHelper($curPath);
-	push(@files,reverse(@profilefiles));
+	@files=$self->getPortageMakeParamHelper($curPath);
 	push(@files,@etcfiles);
 	
 	foreach (@files) {
