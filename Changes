@@ -1,10 +1,16 @@
-Changes
--------
+Revision history for {{$dist->name}}
+
+{{$NEXT}}
+  - Package toolkit migrated to Dist::Zilla
+  - b.g.o #437414 Now fixed in the code.
+  - Maintainer/Release of codebase taken up by KENTNL (kentnl@cpan.org)
+  - Codebase published via CPAN
+
 0.2.11
 	- Add PortageXS::Version (taken from CPANPLUS::Dist::Gentoo)
 
 0.02.10
-	- Fixed bug #265102
+	- Fixed bug b.g.o #265102
 
 0.02.09
 	- Fixed bugs that occured when using new profiles (2008.0+)
@@ -12,12 +18,12 @@ Changes
 	- getArch() is now a wrapper for getPortageMakeParam() only
 
 0.02.08
-	- Fixed bug #216484 - Affected function: getArch()
+	- Fixed bug b.g.o #216484 - Affected function: getArch()
 
 0.02.07
 	- Optional parameter repo: getAvailableEbuilds()
 	- New functions: searchPackageByHerd(), searchPackageByMaintainer()
-	- Fixed bug #178745 - Affected function: getParamFromFile()
+	- Fixed bug b.g.o #178745 - Affected function: getParamFromFile()
 
 0.02.06
 	- fileBelongsToPackage(): Do not die if CONTENTS file is missing. (Reported by Michael Cummings <mcummings@gentoo.org>)

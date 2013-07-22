@@ -1,0 +1,21 @@
+# NAME
+
+PortageXS - Portage abstraction layer for perl
+
+# VERSION
+
+version 0.1.0
+
+# AUTHORS
+
+- Christian Hartmann <ian@gentoo.org>
+- Torsten Veller <tove@gentoo.org>
+- Kent Fredric <kentnl@cpan.org>
+
+# COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2013 by Christian Hartmann.
+
+This is free software, licensed under:
+
+    The GNU General Public License, Version 2, June 1991
