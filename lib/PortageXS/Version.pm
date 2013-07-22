@@ -7,14 +7,6 @@ use warnings;
 
 PortageXS::Version - Gentoo version object.
 
-=head1 VERSION
-
-Version 0.11
-
-=cut
-
-our $VERSION = '0.11';
-
 =head1 DESCRIPTION
 
 This class models Gentoo versions as described in L<http://devmanual.gentoo.org/ebuild-writing/file-format/index.html>.

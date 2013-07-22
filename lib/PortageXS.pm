@@ -21,8 +21,6 @@ package PortageXS;
 #
 # -----------------------------------------------------------------------------
 
-our $VERSION='0.2.11';
-
 use PortageXS::Core;
 use PortageXS::System;
 use PortageXS::Version;
