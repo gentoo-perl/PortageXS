@@ -118,7 +118,7 @@ sub getPortageMakeParam {
 	my $self		= shift;
 	my $param		= shift;
 	my @files		= ();
-	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/make.conf);
+	my @etcfiles		= qw(@GENTOO_PORTAGE_EPREFIX@/usr/share/portage/config/make.globals @GENTOO_PORTAGE_EPREFIX@/etc/make.conf);
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
@@ -162,7 +162,7 @@ sub getPortageMakeParam {
 
 	# - Defaults >
 	if ($param eq 'PORTDIR' && !$v) {
-		$v='/usr/portage';
+		$v='@GENTOO_PORTAGE_EPREFIX@/usr/portage';
 	}
 
 	return $v;
@@ -189,7 +189,7 @@ sub getPortdir {
 		return $self->{'PORTDIR'};
 	}
 	else {
-		$self->{'PORTDIR'}=$self->getParamFromFile($self->getFileContents('/usr/share/portage/config/make.globals').$self->getFileContents('/etc/portage/make.conf'),'PORTDIR','lastseen');
+		$self->{'PORTDIR'}=$self->getParamFromFile($self->getFileContents('@GENTOO_PORTAGE_EPREFIX@/usr/share/portage/config/make.globals').$self->getFileContents('@GENTOO_PORTAGE_EPREFIX@/etc/portage/make.conf'),'PORTDIR','lastseen');
 		return $self->{'PORTDIR'};
 	}
 }
@@ -206,7 +206,7 @@ sub getPortdirOverlay {
 	my $self	= shift;
 	my $forcereload	= shift;
 
-	return split(/ /,$self->getParamFromFile($self->getFileContents('/usr/share/portage/config/make.globals').$self->getFileContents('/etc/make.conf'),'PORTDIR_OVERLAY','lastseen'));
+	return split(/ /,$self->getParamFromFile($self->getFileContents('@GENTOO_PORTAGE_EPREFIX@/usr/share/portage/config/make.globals').$self->getFileContents('@GENTOO_PORTAGE_EPREFIX@/etc/make.conf'),'PORTDIR_OVERLAY','lastseen'));
 }
 
 # Description:

@@ -50,7 +50,7 @@ else {
 sub main {
 	# - Parse config >
 	my %config	= ();
-	$config{'cfgfiledata'} = $pxs->getFileContents("/etc/pxs/portagexsd.conf");
+	$config{'cfgfiledata'} = $pxs->getFileContents("@GENTOO_PORTAGE_EPREFIX@/etc/pxs/portagexsd.conf");
 	$config{'Port'} = $pxs->getParamFromFile($config{'cfgfiledata'},"Port","lastseen");
 	$config{'SSLpasswd'} = $pxs->getParamFromFile($config{'cfgfiledata'},"SSLpasswd","lastseen");
 	$config{'PidFile'} = $pxs->getParamFromFile($config{'cfgfiledata'},"PidFile","lastseen");
@@ -60,7 +60,7 @@ sub main {
 	$config{'cfgfiledata'} = undef;
 
 	if (!$config{'I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING'}) {
-		syslog("info", 'Not starting server as it seems that you did not have a look at the configs yet! (/etc/pxs/portagexsd.conf)');
+		syslog("info", 'Not starting server as it seems that you did not have a look at the configs yet! (@GENTOO_PORTAGE_EPREFIX@/etc/pxs/portagexsd.conf)');
 		exit(0);
 	}
 
@@ -70,9 +70,9 @@ sub main {
 				Reuse     => 1,
 				SSL_verify_mode => 0x01,
 				SSL_passwd_cb => sub {return $config{'SSLpasswd'}},
-				SSL_key_file => '/etc/pxs/certs/server-key.pem',
-				SSL_cert_file => '/etc/pxs/certs/server-cert.pem',
-				SSL_ca_file => '/etc/pxs/certs/my-ca.pem'
+				SSL_key_file => '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/certs/server-key.pem',
+				SSL_cert_file => '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/certs/server-cert.pem',
+				SSL_ca_file => '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/certs/my-ca.pem'
 			)) ) {
 		syslog("info", "Unable to create socket: ", &IO::Socket::SSL::errstr);
 		exit(0);
