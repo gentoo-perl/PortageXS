@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 package PortageXS::UI::Console;
-
+# ABSTRACT: Console interface role for PortageXS
 # -----------------------------------------------------------------------------
 #
 # PortageXS::UI::Console

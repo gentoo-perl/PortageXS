@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 package PortageXS::Useflags;
-
+# ABSTRACT: Useflag parsing utilities role for PortageXS
 # -----------------------------------------------------------------------------
 #
 # PortageXS::Useflags

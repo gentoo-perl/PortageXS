@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 package PortageXS::UI::Spinner;
-
+# ABSTRACT: Dancing \|/- progress bling for consoles.
 # -----------------------------------------------------------------------------
 #
 # PortageXS::UI::Spinner

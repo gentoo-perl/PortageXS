@@ -1,15 +1,15 @@
 package PortageXS::Version;
 
+# ABSTRACT: Gentoo version object
+
 use strict;
 use warnings;
-
-=head1 NAME
-
-PortageXS::Version - Gentoo version object.
 
 =head1 DESCRIPTION
 
 This class models Gentoo versions as described in L<http://devmanual.gentoo.org/ebuild-writing/file-format/index.html>.
+
+This specific class is a deviation of L<CPANPLUS::Dist::Gentoo::Version>
 
 =cut
 

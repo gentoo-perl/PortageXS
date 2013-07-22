@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 package PortageXS::System;
-
+# ABSTRACT: System interactions role for PortageXS
 # -----------------------------------------------------------------------------
 #
 # PortageXS::System

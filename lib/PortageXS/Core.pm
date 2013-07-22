@@ -3,6 +3,8 @@ use warnings;
 
 package PortageXS::Core;
 
+# ABSTRACT: Core behaviour role for C<PortageXS>
+#
 # -----------------------------------------------------------------------------
 #
 # PortageXS::Core
