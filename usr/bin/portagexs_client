@@ -90,7 +90,7 @@ while (<STDIN>) {
 		my $answer=<$sock>;
 		chomp($answer);
 		print ": ".$answer."\n";
-		
+
 	}
 	print $remote_addr."> ";
 }

@@ -81,7 +81,7 @@ sub cmdAskUser {
 	my @options	= ();
 	my $userInput	= "";
 	my $valid	= 0;
-	
+
 	# - split comma seperated options >
 	@options = split(/,/,$option);
 
@@ -111,11 +111,11 @@ sub formatUseflags {
 	my @use2	= (); # -
 	my %masked	= ();
 	my %c		= ();
-	
+
 	foreach ($self->getUsemasksFromProfile()) {
 		$masked{$_}=1;
 	}
-	
+
 	# - Sort - Needed for the right display order >
 	foreach my $this_use (@useflags) {
 		if ($this_use=~m/^-/) {
@@ -130,7 +130,7 @@ sub formatUseflags {
 	push(@useflags,sort(@use2));
 	@use1=();
 	@use2=();
-	
+
 	# - Apply colors and use.mask >
 	foreach my $this_use (@useflags) {
 		if ($this_use=~m/^-/) {
@@ -147,25 +147,25 @@ sub formatUseflags {
 			$c{'suffix'}='';
 			$c{'sort'}=1;
 		}
-		
+
 		if ($this_use=~m/%/) {
 			$c{'color'}='YELLOW';
 			$c{'suffix'}.='%';
 			$c{'useflag'}=~s/%//g;
 		}
-		
+
 		if ($this_use=~m/\*/) {
 			$c{'color'}='YELLOW';
 			$c{'suffix'}.='*';
 			$c{'useflag'}=~s/\*//g;
 		}
-		
+
 		$c{'compiled'}=$self->{'COLORS'}{$c{'color'}}.$c{'prefix'}.$c{'useflag'}.$self->{'COLORS'}{'RESET'}.$c{'suffix'};
-		
+
 		if ($masked{$c{'useflag'}}) {
 			$c{'compiled'}='('.$c{'compiled'}.')';
 		}
-		
+
 		if ($c{'sort'}==1) {
 			push (@use1,$c{'compiled'});
 		}
@@ -173,7 +173,7 @@ sub formatUseflags {
 			push (@use2,$c{'compiled'});
 		}
 	}
-	
+
 	return @use1,@use2;
 }
 

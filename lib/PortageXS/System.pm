@@ -35,7 +35,7 @@ our @EXPORT = qw(
 sub cmdExecute {
 	my $command	= shift;
 	my $rc		= 0xffff & system($command);
-	
+
 	if ($rc == 0) {
 		return $rc;
 	}

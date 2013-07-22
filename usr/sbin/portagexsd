@@ -58,12 +58,12 @@ sub main {
 	$config{'Alter'} = $pxs->getParamFromFile($config{'cfgfiledata'},"Alter","lastseen");
 	$config{'I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING'} = $pxs->getParamFromFile($config{'cfgfiledata'},"I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING","lastseen");
 	$config{'cfgfiledata'} = undef;
-	
+
 	if (!$config{'I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING'}) {
 		syslog("info", 'Not starting server as it seems that you did not have a look at the configs yet! (/etc/pxs/portagexsd.conf)');
 		exit(0);
 	}
-	
+
 	if(!($sock = IO::Socket::SSL->new( Listen => 5,
 				LocalPort => $config{'Port'},
 				Proto     => 'tcp',
@@ -79,35 +79,35 @@ sub main {
 	}
 	syslog("info", "socket created: ".$sock);
 	syslog("info", 'Started new server on port '.$config{'Port'}.' with process id '.$$);
-	
+
 	while (1) {
 		syslog("info", "waiting for next connection.");
-		
+
 		while (($s, $c_addr) = $sock->accept()) {
 			my ($peer_cert, $subject_name, $issuer_name, $date, $str);
 			my ($client_port, $c_ip) = sockaddr_in($c_addr);
 			my $client_ipnum = inet_ntoa($c_ip);
 			my $client_host = gethostbyaddr($c_ip, AF_INET);
 			syslog("info", "got a connection from: $client_host"," [$client_ipnum] ");
-			
+
 			if (!$s) {
 				syslog("info", "error: ", $sock->errstr);
 				next;
 			}
-			
+
 			syslog("info", "connection opened ($s - $c_ip)");
-			
+
 			if (ref($sock) eq "IO::Socket::SSL") {
 				$subject_name = $s->peer_certificate("subject");
 				$issuer_name = $s->peer_certificate("issuer");
 			}
-			
+
 			syslog("info", "\t subject: '$subject_name'");
 			syslog("info", "\t issuer: '$issuer_name'");
 			while (<$s>) {
 				my $command=$_;
 				chomp($command);
-				
+
 				if ($command eq "date") {
 					if ($config{'Query'} eq "true") {
 						syslog("info", "from ".$client_host.": ".$command);
@@ -195,7 +195,7 @@ sub main {
 					print $s "bye                              : close connection to server\n";
 				}
 
-				
+
 				elsif ($command eq "bye" || $command eq "quit" || $command eq "exit") {
 					syslog("info", $client_host." disconnected");
 					last;
@@ -211,7 +211,7 @@ sub main {
 			syslog("info", $client_host."> Connection closed.");
 		}
 	}
-	
+
 	$sock->close();
 	syslog("info", "loop exited.");
 }

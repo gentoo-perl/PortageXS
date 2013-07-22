@@ -71,7 +71,7 @@ sub getArch {
 
 # Description:
 # Returns the profile tree as array
-# "depth ﬁrst, left to right, with duplicate parent paths being sourced 
+# "depth ﬁrst, left to right, with duplicate parent paths being sourced
 # for every time they are encountered"
 sub getProfileTree {
 	my $self	= shift;
@@ -114,7 +114,7 @@ sub getPortageMakeParam {
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
-	
+
 	if(!-e $self->{'MAKE_PROFILE_PATH'}) {
 		$self->print_err('Profile not set!');
 		exit(0);
@@ -122,20 +122,20 @@ sub getPortageMakeParam {
 	else {
 		$curPath=$self->getProfilePath();
 	}
-	
+
 	@files=$self->getPortageMakeParamHelper($curPath);
 	push(@files,@etcfiles);
-	
+
 	foreach (@files) {
 		my $importer = Shell::EnvImporter->new(	shell		=> "bash",
 							file		=> $_,
 							auto_run	=> 1,
 							auto_import	=> 1
 					);
-		
+
 		$importer->shellobj->envcmd('set');
 		$importer->run();
-		
+
 		if ($ENV{$param}) {
 			$v=$ENV{$param};
 			$v=~s/\\t/ /g;
@@ -148,15 +148,15 @@ sub getPortageMakeParam {
 			$v=~s/\s$//;
 			$v=~s/\s{2,}/ /g;
 		}
-		
+
 		$importer->restore_env();
 	}
-	
+
 	# - Defaults >
 	if ($param eq 'PORTDIR' && !$v) {
 		$v='/usr/portage';
 	}
-	
+
 	return $v;
 }
 
@@ -176,7 +176,7 @@ sub getPortageMakeParam {
 sub getPortdir {
 	my $self	= shift;
 	my $forcereload	= shift;
-	
+
 	if ($self->{'PORTDIR'} && !$forcereload) {
 		return $self->{'PORTDIR'};
 	}
@@ -197,7 +197,7 @@ sub getPortdir {
 sub getPortdirOverlay {
 	my $self	= shift;
 	my $forcereload	= shift;
-	
+
 	return split(/ /,$self->getParamFromFile($self->getFileContents('/usr/share/portage/config/make.globals').$self->getFileContents('/etc/make.conf'),'PORTDIR_OVERLAY','lastseen'));
 }
 
@@ -229,7 +229,7 @@ sub searchInstalledPackage {
 	my $dhp;
 	my $tc;
 	my $tp;
-	
+
 	# - escape special chars >
 	$searchString =~ s/\+/\\\+/g;
 
@@ -240,10 +240,10 @@ sub searchInstalledPackage {
 	else {
 		$s_pak=$searchString;
 	}
-	
+
 	$s_cat=~s/\*//g;
 	$s_pak=~s/\*//g;
-	
+
 	# - read categories >
 	$dhc = new DirHandle($self->{'PKG_DB_DIR'});
 	if (defined $dhc) {
@@ -257,7 +257,7 @@ sub searchInstalledPackage {
 					next;
 				}
 			}
-			
+
 			# - not excluded and $_ is a dir?
 			if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $self->{'PKG_DB_DIR'}.'/'.$tc) {
 				$dhp = new DirHandle($self->{'PKG_DB_DIR'}.'/'.$tc);
@@ -281,7 +281,7 @@ sub searchInstalledPackage {
 		}
 	}
 	undef $dhc;
-	
+
 	return (sort @matches);
 }
 
@@ -309,15 +309,15 @@ sub searchPackage {
 	my $tc;
 	my $tp;
 	my @matches		= ();
-	
+
 	if (!$mode) { $mode='like'; }
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
-	
+
 	# - escape special chars >
 	if ($mode eq 'like') {
 		$searchString =~ s/\+/\\\+/g;
-		
+
 		# - read categories >
 		$dhc = new DirHandle($repo);
 		if (defined $dhc) {
@@ -365,7 +365,7 @@ sub searchPackage {
 		}
 		undef $dhc;
 	}
-	
+
 	return (sort @matches);
 }
 
@@ -383,23 +383,23 @@ sub getParamFromFile {
 	my $d		= 0;
 	my @lines	= ();
 	my $value	= ''; # value of $param
-	
+
 	# - split file in lines >
 	@lines = split(/\n/,$file);
-	
+
 	for($c=0;$c<=$#lines;$c++) {
 		next if $lines[$c]=~m/^#/;
-		
+
 		# - remove comments >
 		$lines[$c]=~s/#(.*)//g;
-		
+
 		# - remove leading whitespaces and tabs >
 		$lines[$c]=~s/^[ \t]+//;
-		
+
 		if ($lines[$c]=~/^$param="(.*)"/) {
 			# single-line with quotationmarks >
 			$value=$1;
-		
+
 			last if ($mode eq 'firstseen');
 		}
 		elsif ($lines[$c]=~/^$param="(.*)/) {
@@ -417,23 +417,23 @@ sub getParamFromFile {
 					$value.=$lines[$d].' ';
 				}
 			}
-		
+
 			last if ($mode eq 'firstseen');
 		}
 		elsif ($lines[$c]=~/^$param=(.*)/) {
 			# - single-line without quotationmarks >
 			$value=$1;
-			
+
 			last if ($mode eq 'firstseen');
 		}
 	}
-	
+
 	# - clean up value >
 	$value=~s/^[ \t]+//; # remove leading whitespaces and tabs
 	$value=~s/[ \t]+$//; # remove trailing whitespaces and tabs
 	$value=~s/\t/ /g;     # replace tabs with whitespaces
 	$value=~s/ {2,}/ /g;  # replace 1+ whitespaces with 1 whitespace
-	
+
 	return $value;
 }
 
@@ -448,7 +448,7 @@ sub getUseSettingsOfInstalledPackage {
 	my @package_USE		= ();
 	my @USEs		= ();
 	my $hasuse		= '';
-	
+
 	if (-e $self->{'PKG_DB_DIR'}.'/'.$package.'/IUSE') {
 		$tmp_filecontents	= $self->getFileContents($self->{'PKG_DB_DIR'}.'/'.$package.'/IUSE');
 	}
@@ -459,7 +459,7 @@ sub getUseSettingsOfInstalledPackage {
 	}
 	$tmp_filecontents	=~s/\n//g;
 	@package_USE		= split(/ /,$tmp_filecontents);
-	
+
 	foreach my $thisIUSE (@package_IUSE) {
 		next if ($thisIUSE eq '');
 		$hasuse = '-';
@@ -471,7 +471,7 @@ sub getUseSettingsOfInstalledPackage {
 		}
 		push(@USEs,$hasuse.$thisIUSE);
 	}
-	
+
 	return @USEs;
 }
 
@@ -482,10 +482,10 @@ sub getAvailableEbuilds {
 	my $catPackage	= shift;
 	my $repo	= shift;
 	my @packagelist	= ();
-	
+
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
-	
+
 	if (-e $repo.'/'.$catPackage) {
 		# - get list of ebuilds >
 		my $dh = new DirHandle($repo.'/'.$catPackage);
@@ -495,7 +495,7 @@ sub getAvailableEbuilds {
 			}
 		}
 	}
-	
+
 	return @packagelist;
 }
 
@@ -537,7 +537,7 @@ sub getAvailableArches {
 sub getPortageXScategorylist {
 	my $self	= shift;
 	my $category	= shift;
-	
+
 	return split(/\n/,$self->getFileContents($self->{'PORTAGEXS_ETC_DIR'}.'/categories/'.$category.'.list'));
 }
 
@@ -553,10 +553,10 @@ sub getPackagesFromCategory {
 	my $dhp;
 	my $tp;
 	my @packages	= ();
-	
+
 	return () if !$category;
 	$repo=$self->{'PORTDIR'} if (!$repo);
-	
+
 	if (-d $repo.'/'.$category) {
 		$dhp = new DirHandle($repo.'/'.$category);
 		while (defined($tp = $dhp->read)) {
@@ -584,7 +584,7 @@ sub fileBelongsToPackage {
 	my $dhp;
 	my $tc;
 	my $tp;
-	
+
 	# - read categories >
 	$dhc = new DirHandle($self->{'PKG_DB_DIR'});
 	if (defined $dhc) {
@@ -607,7 +607,7 @@ sub fileBelongsToPackage {
 		}
 	}
 	undef $dhc;
-	
+
 	return @matches;
 }
 
@@ -618,7 +618,7 @@ sub getFilesOfInstalledPackage {
 	my $self	= shift;
 	my $package	= shift;
 	my @files	= ();
-	
+
 	# - find installed versions & loop >
 	foreach ($self->searchInstalledPackage($package)) {
 		foreach (split(/\n/,$self->getFileContents($self->{PKG_DB_DIR}.'/'.$_.'/CONTENTS'))) {
@@ -637,7 +637,7 @@ sub getEbuildVersion {
 	my $version	= shift;
 	$version =~ s/\.ebuild$//;
 	$version =~ s/^([a-zA-Z0-9\-_\/\+]*)-([0-9\.]+[a-zA-Z]?)/$2/;
-	
+
 	return $version;
 }
 
@@ -648,9 +648,9 @@ sub getEbuildName {
 	my $self	= shift;
 	my $version	= shift;
 	my $name	= $version;
-	
+
 	$version =~ s/^([a-zA-Z0-9\-_\/\+]*)-([0-9\.]+[a-zA-Z]?)/$2/;
-	
+
 	return substr($name,0,length($name)-length($version)-1);
 }
 
@@ -663,13 +663,13 @@ sub getReponame {
 	my $self	= shift;
 	my $repo	= shift;
 	my $repo_name	= '';
-	
+
 	if (-f $repo.'/profiles/repo_name') {
 		$repo_name = $self->getFileContents($repo.'/profiles/repo_name');
 		chomp($repo_name);
 		return $repo_name;
 	}
-	
+
 	return '';
 }
 
@@ -682,14 +682,14 @@ sub resolveMirror {
 	my $self	= shift;
 	my $mirror	= shift;
 	my $buffer	= $self->getFileContents($self->{PORTDIR}.'/profiles/thirdpartymirrors');
-	
+
 	foreach (split(/\n/,$buffer)) {
 		my @p=split(/\t/,$_);
 		if ($mirror eq $p[0]) {
 			return split(/ /,$p[2]);
 		}
 	}
-	
+
 	return;
 }
 
@@ -701,11 +701,11 @@ sub resolveMirror {
 sub getCategories {
 	my $self	= shift;
 	my $repo	= shift;
-	
+
 	if (-e $repo.'/profiles/categories') {
 		return split(/\n/,$self->getFileContents($repo.'/profiles/categories'));
 	}
-	
+
 	return ();
 }
 
@@ -714,14 +714,14 @@ sub getCategories {
 # $path=$pxs->getProfilePath();
 sub getProfilePath {
 	my $self	= shift;
-	
+
 	if (-e $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'})) {
 		return $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'});
 	}
 	elsif (-e readlink($self->{'MAKE_PROFILE_PATH'})) {
 		return readlink($self->{'MAKE_PROFILE_PATH'});
 	}
-	
+
 	return;
 }
 
@@ -730,11 +730,11 @@ sub getProfilePath {
 # @packages=$pxs->getPackagesFromWorld();
 sub getPackagesFromWorld {
 	my $self	= shift;
-	
+
 	if (-e $self->{'PATH_TO_WORLDFILE'}) {
 		return split(/\n/,$self->getFileContents($self->{'PATH_TO_WORLDFILE'}));
 	}
-	
+
 	return ();
 }
 
@@ -745,22 +745,22 @@ sub recordPackageInWorld {
 	my $self	= shift;
 	my $package	= shift;
 	my %world	= ();
-	
+
 	# - get packages already recorded in world >
 	foreach ($self->getPackagesFromWorld()) {
 		$world{$_}=1;
 	}
-	
+
 	# - add $package >
 	$world{$package}=1;
-	
+
 	# - write world file >
 	open my $fh, '>', $self->{'PATH_TO_WORLDFILE'} or die('Cannot write to world file!');
 	foreach (keys %world) {
 		print $fh $_,"\n";
 	}
 	close $fh;
-	
+
 	return 1;
 }
 
@@ -771,22 +771,22 @@ sub removePackageFromWorld {
 	my $self	= shift;
 	my $package	= shift;
 	my %world	= ();
-	
+
 	# - get packages already recorded in world >
 	foreach ($self->getPackagesFromWorld()) {
 		$world{$_}=1;
 	}
-	
+
 	# - remove $package >
 	$world{$package}=0;
-	
+
 	# - write world file >
 	open my $fh,'>', $self->{'PATH_TO_WORLDFILE'} or die('Cannot write to world file!');
 	foreach (keys %world) {
 		print $fh $_,"\n" if ($world{$_});
 	}
 	close $fh;
-	
+
 	return 1;
 }
 
@@ -795,16 +795,16 @@ sub removePackageFromWorld {
 # $pxs->resetCaches();
 sub resetCaches {
 	my $self	= shift;
-	
+
 	# - Core >
 	$self->{'PORTDIR'}=undef;
 	$self->{'PORTDIR'}=$self->getPortdir();
-	
+
 	# - Console >
-	
+
 	# - System - getHomedir >
 	$self->{'CACHE'}{'System'}{'getHomedir'}{'homedir'}=undef;
-	
+
 	# - Useflags - getUsedescs >
 	foreach my $k1 (keys %{$self->{'CACHE'}{'Useflags'}{'getUsedescs'}}) {
 		$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$k1}{'use.desc'}{'initialized'}=undef;
@@ -814,10 +814,10 @@ sub resetCaches {
 		$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$k1}{'use.desc'}{'use'}=undef;
 		$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$k1}{'use.local.desc'}=undef;
 	}
-	
+
 	# - Useflags - getUsemasksFromProfile >
 	$self->{'CACHE'}{'Useflags'}{'getUsemasksFromProfile'}{'useflags'}=undef;
-	
+
 	return 1;
 }
 
@@ -837,11 +837,11 @@ sub searchPackageByMaintainer {
 	my $tp;
 	my @matches		= ();
 	my @fields		= ();
-	
+
 	#if (!$mode) { $mode='like'; }
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
-	
+
 	# - read categories >
 	foreach ($self->searchPackage('','like',$repo)) {
 		if (-e $repo.'/'.$_.'/metadata.xml') {
@@ -854,7 +854,7 @@ sub searchPackageByMaintainer {
 			}
 		}
 	}
-	
+
 	return (sort @matches);
 }
 
@@ -874,11 +874,11 @@ sub searchPackageByHerd {
 	my $tp;
 	my @matches		= ();
 	my @fields		= ();
-	
+
 	#if (!$mode) { $mode='like'; }
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
-	
+
 	# - read categories >
 	foreach ($self->searchPackage('','like',$repo)) {
 		if (-e $repo.'/'.$_.'/metadata.xml') {
@@ -888,7 +888,7 @@ sub searchPackageByHerd {
 			}
 		}
 	}
-	
+
 	return (sort @matches);
 }
 
