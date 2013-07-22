@@ -14,8 +14,8 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 
 # - getFileContents >
 {
-	my $content = $pxs->getFileContents('/etc/make.conf');
-	ok($content ne '','getFileContents of /etc/make.conf');
+	my $content = $pxs->getFileContents('/etc/portage/make.conf');
+	ok($content ne '','getFileContents of /etc/portage/make.conf');
 }
 
 # - searchInstalledPackage >
@@ -26,8 +26,8 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 
 # - getParamFromFile >
 {
-	my $param = $pxs->getParamFromFile($pxs->getFileContents('/etc/make.conf'),'CFLAGS','lastseen');
-	ok($param ne '','getParamFromFile /etc/make.conf - CFLAGS: '.$param);
+	my $param = $pxs->getParamFromFile($pxs->getFileContents('/etc/portage/make.conf'),'CFLAGS','lastseen');
+	ok($param ne '','getParamFromFile /etc/portage/make.conf - CFLAGS: '.$param);
 }
 
 # - getUseSettingsOfInstalledPackage >
