@@ -71,8 +71,8 @@ sub new {
 	$pxs->{'VERSION'}			= $PortageXS::VERSION;
 
 	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
-	$pxs->{'PKG_DB_DIR'}			= '/var/db/pkg/';
-	$pxs->{'PATH_TO_WORLDFILE'}		= '/var/lib/portage/world';
+	$pxs->{'PKG_DB_DIR'}			= '@GENTOO_PORTAGE_EPREFIX@/var/db/pkg/';
+	$pxs->{'PATH_TO_WORLDFILE'}		= '@GENTOO_PORTAGE_EPREFIX@/var/lib/portage/world';
 	$pxs->{'IS_INITIALIZED'}		= 1;
 
 	$pxs->{'EXCLUDE_DIRS'}{'.'}		= 1;
@@ -85,17 +85,17 @@ sub new {
 	$pxs->{'EXCLUDE_DIRS'}{'CVS'}		= 1;
 	$pxs->{'EXCLUDE_DIRS'}{'.cache'}	= 1;
 
-	$pxs->{'PORTAGEXS_ETC_DIR'}		= '/etc/pxs/';
-	$pxs->{'ETC_DIR'}			= '/etc/';
+	$pxs->{'PORTAGEXS_ETC_DIR'}		= '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/';
+	$pxs->{'ETC_DIR'}			= '@GENTOO_PORTAGE_EPREFIX@/etc/';
 
 	$pxs->{'MAKE_PROFILE_PATHS'} = [
-		'/etc/make.profile',
-		'/etc/portage/make.profile'
+		'@GENTOO_PORTAGE_EPREFIX@/etc/make.profile',
+		'@GENTOO_PORTAGE_EPREFIX@/etc/portage/make.profile'
 	];
 
 	$pxs->{'MAKE_CONF_PATHS'} = [
-		'/etc/make.conf',
-		'/etc/portage/make.conf'
+		'@GENTOO_PORTAGE_EPREFIX@/etc/make.conf',
+		'@GENTOO_PORTAGE_EPREFIX@/etc/portage/make.conf'
 	];
 
 	for my $path ( @{ $pxs->{'MAKE_PROFILE_PATHS'} } ) {

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!@GENTOO_PORTAGE_EPREFIX@/usr/bin/perl
 
 # -----------------------------------------------------------------------------
 #
@@ -54,9 +54,9 @@ if(!($sock = IO::Socket::SSL->new( PeerAddr => $remote_addr,
 				SSL_use_cert => 1,
 				SSL_verify_mode => 0x01,
 				SSL_passwd_cb => sub { return "" },
-				SSL_key_file => '/etc/pxs/certs/client-key.pem',
-				SSL_cert_file => '/etc/pxs/certs/client-cert.pem',
-				SSL_ca_file => '/etc/pxs/certs/my-ca.pem'
+				SSL_key_file => '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/certs/client-key.pem',
+				SSL_cert_file => '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/certs/client-cert.pem',
+				SSL_ca_file => '@GENTOO_PORTAGE_EPREFIX@/etc/pxs/certs/my-ca.pem'
 				 ))) {
 	$pxs->print_err("unable to create socket: ".&IO::Socket::SSL::errstr."\n");
 	$pxs->print_err("Server down?\n");
