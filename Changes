@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.2.11 2013-07-22T15:23:47Z
   - Package toolkit migrated to Dist::Zilla
   - b.g.o #437414 Now fixed in the code.
   - Maintainer/Release of codebase taken up by KENTNL (kentnl@cpan.org)
