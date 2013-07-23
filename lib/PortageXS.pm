@@ -98,6 +98,11 @@ sub new {
 		'/etc/portage/make.profile'
 	];
 
+    $pxs->{'MAKE_GLOBALS_PATHS'} = [
+        '/etc/make.globals',
+        '/usr/share/portage/config/make.globals',
+    ];
+
 	$pxs->{'MAKE_CONF_PATHS'} = [
 		'/etc/make.conf',
 		'/etc/portage/make.conf'
@@ -117,6 +122,14 @@ sub new {
 	if ( not defined $pxs->{'MAKE_CONF_PATH'} ) {
 		die "Error, none of paths for `make.conf` exists." . join q{, }, @{ $pxs->{'MAKE_CONF_PATHS'} };
 	}
+	for my $path ( @{ $pxs->{'MAKE_GLOBALS_PATHS'} } ) {
+		next unless -e $path;
+		$pxs->{'MAKE_GLOBALS_PATH'} = $path;
+	}
+	if ( not defined $pxs->{'MAKE_GLOBALS_PATH'} ) {
+		die "Error, none of paths for `make.globals` exists." . join q{, }, @{ $pxs->{'MAKE_GLOBALS_PATHS'} };
+	}
+
 	return $pxs;
 }
 
