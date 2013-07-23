@@ -19,7 +19,7 @@
 
 use strict;
 use warnings;
-use lib '../../lib';
+use Path::Tiny qw(path);
 use PortageXS;
 use IO::Socket;
 use IO::Socket::SSL;
@@ -50,7 +50,7 @@ else {
 sub main {
 	# - Parse config >
 	my %config	= ();
-	$config{'cfgfiledata'} = $pxs->getFileContents("/etc/pxs/portagexsd.conf");
+	$config{'cfgfiledata'} = path("/etc/pxs/portagexsd.conf")->slurp;
 	$config{'Port'} = $pxs->getParamFromFile($config{'cfgfiledata'},"Port","lastseen");
 	$config{'SSLpasswd'} = $pxs->getParamFromFile($config{'cfgfiledata'},"SSLpasswd","lastseen");
 	$config{'PidFile'} = $pxs->getParamFromFile($config{'cfgfiledata'},"PidFile","lastseen");
