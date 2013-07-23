@@ -22,6 +22,7 @@ package PortageXS;
 # -----------------------------------------------------------------------------
 
 use Role::Tiny::With;
+use Path::Tiny qw(path);
 
 
 with 'PortageXS::Core';
@@ -37,7 +38,7 @@ sub colors {
     return $self->{colors} = do {
         require PortageXS::Colors;
         my $colors   = PortageXS::Colors->new();
-        my $makeconf = $self->getFileContents( $self->{'MAKE_CONF_PATH'} );
+        my $makeconf = path( $self->{'MAKE_CONF_PATH'} )->slurp();
         my $want_nocolor =
           lc( $self->getParamFromFile( $makeconf, 'NOCOLOR', 'lastseen' ) );
 

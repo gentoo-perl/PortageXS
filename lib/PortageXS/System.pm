@@ -20,7 +20,6 @@ package PortageXS::System;
 #
 # -----------------------------------------------------------------------------
 
-use DirHandle;
 
 use Role::Tiny;
 # Description:

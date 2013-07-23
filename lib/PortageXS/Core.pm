@@ -23,7 +23,6 @@ package PortageXS::Core;
 # -----------------------------------------------------------------------------
 
 use Path::Tiny qw(path);
-use DirHandle;
 use Shell::EnvImporter;
 use Role::Tiny;
 
@@ -196,10 +195,6 @@ sub searchInstalledPackage {
 	my $s_cat		= '';
 	my $s_pak		= '';
 	my $m_cat		= 0;
-	my $dhc;
-	my $dhp;
-	my $tc;
-	my $tp;
 
 	# - escape special chars >
 	$searchString =~ s/\+/\\\+/g;
@@ -216,12 +211,12 @@ sub searchInstalledPackage {
 	$s_pak=~s/\*//g;
 
 	# - read categories >
-	$dhc = new DirHandle($self->{'PKG_DB_DIR'});
+	my $dhc = path($self->{'PKG_DB_DIR'})->iterator;
 	if (defined $dhc) {
-		while (defined($tc = $dhc->read)) {
+		while (defined(my $tc = $dhc->())) {
 			$m_cat=0;
 			if ($s_cat ne '') {
-				if ($tc=~m/$s_cat/i) {
+				if ($tc->basename=~m/$s_cat/i) {
 					$m_cat=1;
 				}
 				else {
@@ -230,19 +225,19 @@ sub searchInstalledPackage {
 			}
 
 			# - not excluded and $_ is a dir?
-			if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $self->{'PKG_DB_DIR'}.'/'.$tc) {
-				$dhp = new DirHandle($self->{'PKG_DB_DIR'}.'/'.$tc);
-				while (defined($tp = $dhp->read)) {
+			if (! $self->{'EXCLUDE_DIRS'}{$tc->basename} && -d $tc) {
+				my $dhp = $tc->iterator;
+				while (defined(my $tp = $dhp->())) {
 					# - check if packagename matches
 					#   (faster if we already check it now) >
-					if ($tp =~m/$s_pak/i || $s_pak eq '') {
+					if ($tp->basename =~m/$s_pak/i || $s_pak eq '') {
 						# - not excluded and $_ is a dir?
-						if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp) {
+						if (! $self->{'EXCLUDE_DIRS'}{$tp->basename} && -d $tp) {
 							if (($s_cat ne '') && ($m_cat)) {
-								push(@matches,$tc.'/'.$tp);
+								push(@matches,$tc->basename.'/'.$tp->basename);
 							}
 							elsif ($s_cat eq '') {
-								push(@matches,$tc.'/'.$tp);
+								push(@matches,$tc->basename.'/'.$tp->basename);
 							}
 						}
 					}
