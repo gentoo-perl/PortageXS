@@ -71,7 +71,7 @@ sub getUsedescs {
 	if ($package) {
 		if (-e $uselocaldesc) {
 			if (!$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'}) {
-				$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'}=$uselocaldesc->slurp(); 
+				$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'}=$uselocaldesc->slurp();
 			}
 
 			foreach (split(/\n/,$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'})) {

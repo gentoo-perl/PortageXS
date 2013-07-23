@@ -608,7 +608,7 @@ sub getFilesOfInstalledPackage {
 
 	# - find installed versions & loop >
 	foreach my $pkg ($self->searchInstalledPackage($package)) {
-		my $pkg = ( ref $pkg ? $pkg : do { 
+		my $pkg = ( ref $pkg ? $pkg : do {
 			path($self->{PKG_DB_DIR})->child($pkg);
 		});
 		foreach my $file_line ( $pkg->child('CONTENTS')->lines({ chomp => 1 } )) {
