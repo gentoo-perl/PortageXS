@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.2.12 2013-07-24T06:23:39Z
  [Bugfix]
  - Partial solution to b.g.o #264680, bailing on unreadable categories,
    including non-categories that are also unreadable such as 'package'. Its
