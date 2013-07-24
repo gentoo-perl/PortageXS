@@ -6,8 +6,15 @@ Revision history for {{$dist->name}}
    including non-categories that are also unreadable such as 'package'. Its
    not ideal, but its better than bailing for a predominant chunk of users.
 
+ [Dependencies::Added / develop requires]
+ - Test::CPAN::Changes 0.19
+
  [Documentation]
  - Changelog retroactively touched up to work better with CPAN::Changes
+
+ [Internals]
+ - Refactored body of searchPackages into 2 smaller and more reusable
+   parts.
 
 0.2.11 2013-07-22T15:23:47Z
  - Package toolkit migrated to Dist::Zilla
