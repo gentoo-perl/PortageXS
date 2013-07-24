@@ -154,6 +154,23 @@ Though the name says C<XS> in it, you'll see there is no C<XS> anywhere in the t
 
 As such, my preferred name would be C<Gentoo::Portage::API>, or something like that, but we're stuck for now.
 
+=head1 SIGNIFICANT CHANGES
+
+=head2 0.3.0 Series
+
+=head3 0.3.0
+
+=head4 Slurping Overhaul
+
+This module contains a lot of file slurping magic, in a few various forms, as well as path mangling
+and similar things.
+
+This release is a huge overhaul of how that works, and sufficiently more dependence is now placed on L<< C<Path::Tiny>|Path::Tiny >>'s head.
+
+C<getFileContents> is now deprecated, and will warn when called.
+
+However, the nature of this change is likely introduce a few bugs in places I may not have transformed the code properly, which may not be immediately obvservable.
+
 =head1 CHOPPING BLOCK
 
 I've inherited this module from Gentoo Staff, who are now more-or-less retired, and this code has

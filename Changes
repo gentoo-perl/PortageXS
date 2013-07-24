@@ -1,6 +1,27 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+ [00 MAJOR Changes]
+ - Guts overhaulled so everywhere file IO was done directly, or via
+   PortageXS::Core::getFileContents, it is instead now done by Path::Tiny.
+ - DirHandle based traversal replaced by Path::Tiny iterate()
+ - Many linewise readers replaced with shorter Path::Tiny->lines
+ - BREAKAGES EXPECED
+
+ [Dependencies::Added / develop requires]
+ - Test::CPAN::Changes 0.19
+
+ [Dependencies::Added / runtime requires]
+ - Path::Tiny
+
+ [Dependencies::Removed / runtime requires]
+ - DirHandle
+
+ [Documentation]
+ - Changelog retroactively touched up to work better with CPAN::Changes
+
+ [Misc]
+ - Examples moved to top level
 
 0.3.0 2013-07-27T06:13:05Z
  [00 Major Changes]
