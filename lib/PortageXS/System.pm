@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::System::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::System::VERSION = '0.2.11';
+  $PortageXS::System::VERSION = '0.2.12';
 }
 # ABSTRACT: System interactions role for PortageXS
 # -----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ PortageXS::System - System interactions role for PortageXS
 
 =head1 VERSION
 
-version 0.2.11
+version 0.2.12
 
 =head1 AUTHORS
 

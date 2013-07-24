@@ -59,6 +59,7 @@ eval { $v .= pmver('Module::Build','0.4005') };
 eval { $v .= pmver('Scalar::Util','any version') };
 eval { $v .= pmver('Shell::EnvImporter','any version') };
 eval { $v .= pmver('Term::ANSIColor','any version') };
+eval { $v .= pmver('Test::CPAN::Changes','0.19') };
 eval { $v .= pmver('Test::CPAN::Meta','any version') };
 eval { $v .= pmver('Test::More','0.98') };
 eval { $v .= pmver('Test::Pod','1.41') };

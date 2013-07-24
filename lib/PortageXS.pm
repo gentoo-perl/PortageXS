@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::VERSION = '0.2.11';
+  $PortageXS::VERSION = '0.2.12';
 }
 # ABSTRACT: Portage abstraction layer for perl
 
@@ -154,7 +154,7 @@ PortageXS - Portage abstraction layer for perl
 
 =head1 VERSION
 
-version 0.2.11
+version 0.2.12
 
 =head1 NAMING
 
