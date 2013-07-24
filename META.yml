@@ -23,25 +23,25 @@ name: PortageXS
 provides:
   PortageXS:
     file: lib/PortageXS.pm
-    version: v0.2.11
+    version: v0.2.12
   PortageXS::Core:
     file: lib/PortageXS/Core.pm
-    version: v0.2.11
+    version: v0.2.12
   PortageXS::System:
     file: lib/PortageXS/System.pm
-    version: v0.2.11
+    version: v0.2.12
   PortageXS::UI::Console:
     file: lib/PortageXS/UI/Console.pm
-    version: v0.2.11
+    version: v0.2.12
   PortageXS::UI::Spinner:
     file: lib/PortageXS/UI/Spinner.pm
-    version: v0.2.11
+    version: v0.2.12
   PortageXS::Useflags:
     file: lib/PortageXS/Useflags.pm
-    version: v0.2.11
+    version: v0.2.12
   PortageXS::Version:
     file: lib/PortageXS/Version.pm
-    version: v0.2.11
+    version: v0.2.12
 requires:
   Carp: 0
   DirHandle: 0
@@ -57,7 +57,7 @@ resources:
   bugtracker: https://github.com/gentoo-perl/PortageXS/issues
   homepage: https://github.com/gentoo-perl/PortageXS
   repository: https://github.com/gentoo-perl/PortageXS.git
-version: 0.2.11
+version: 0.2.12
 x_BuiltWith:
   modules:
     Carp: 1.29
@@ -71,6 +71,7 @@ x_BuiltWith:
     Scalar::Util: 1.27
     Shell::EnvImporter: 1.06
     Term::ANSIColor: 4.02
+    Test::CPAN::Changes: 0.20
     Test::CPAN::Meta: 0.23
     Test::More: 0.98
     Test::Pod: 1.48
@@ -247,6 +248,10 @@ x_Dist_Zilla:
       class: Dist::Zilla::Plugin::ReadmeAnyFromPod
       name: '@Author::KENTNL/ReadmeAnyFromPod'
       version: 0.131500
+    -
+      class: Dist::Zilla::Plugin::Test::CPAN::Changes
+      name: '@Author::KENTNL/Test::CPAN::Changes'
+      version: 0.008
     -
       class: Dist::Zilla::Plugin::CheckExtraTests
       name: '@Author::KENTNL/CheckExtraTests'

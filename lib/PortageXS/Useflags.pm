@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::Useflags::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Useflags::VERSION = '0.2.11';
+  $PortageXS::Useflags::VERSION = '0.2.12';
 }
 # ABSTRACT: Useflag parsing utilities role for PortageXS
 # -----------------------------------------------------------------------------
@@ -229,7 +229,7 @@ PortageXS::Useflags - Useflag parsing utilities role for PortageXS
 
 =head1 VERSION
 
-version 0.2.11
+version 0.2.12
 
 =head1 AUTHORS
 

@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::Core::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Core::VERSION = '0.2.11';
+  $PortageXS::Core::VERSION = '0.2.12';
 }
 
 # ABSTRACT: Core behaviour role for C<PortageXS>
@@ -42,6 +42,10 @@ our @EXPORT = qw(
 			getFileContents
 			searchInstalledPackage
 			searchPackage
+			_searchPackage_like
+			_searchPackage_exact
+			_foreach_category
+			_foreach_package
 			getParamFromFile
 			getUseSettingsOfInstalledPackage
 			getAvailableEbuilds
@@ -293,6 +297,74 @@ sub searchInstalledPackage {
 	return (sort @matches);
 }
 
+sub _foreach_category {
+	my ( $self, $repo , $callback ) = @_;
+	return () unless -d $repo;
+	my $dhc = DirHandle->new($repo);
+	while(defined(my $tc = $dhc->read()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tc};
+		local $_ = {
+			category => $tc,
+			path     => $repo . '/' . $tc
+		};
+		my $result = $callback->();
+		return if defined $result and $result eq 'BAIL';
+	}
+}
+sub _foreach_package {
+	my ( $self, $repo, $category, $callback ) = @_;
+	return () unless -d $repo;
+	my $category_path = $repo . '/' . $category;
+	return () unless -d $category_path;
+	return () unless -r $category_path;
+	my $dhc = DirHandle->new( $category_path );
+	while(defined(my $tp = $dhc->read()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tp};
+		local $_ = {
+			category => $category,
+			package  => $tp,
+			path     => $repo . '/' . $category . '/' . $tp
+		};
+		my $result = $callback->();
+		return if defined $result and $result eq 'BAIL';
+	}
+}
+
+sub _searchPackage_like {
+	my ( $self, $searchString, $repo ) = @_ ;
+	return () unless -d $repo;
+	$searchString =~ s/\+/\\\+/g;
+	my @matches;
+	# - read categories >
+	$self->_foreach_category( $repo => sub {
+		return unless -d $_->{path};
+		return unless -r $_->{path};
+		$self->_foreach_package( $repo =>  $_->{category} => sub {
+			return unless $_->{package} =~ m/$searchString/i;
+			return unless -d $_->{path};
+			push @matches, $_->{category} . '/' . $_->{package};
+		});
+	});
+	return (sort @matches);
+}
+
+sub _searchPackage_exact {
+	my ( $self, $searchString, $repo ) = @_ ;
+	return () unless -d $repo;
+	my @matches;
+	# - read categories >
+	$self->_foreach_category( $repo => sub {
+		return unless -d $_->{path};
+		return unless -r $_->{path};
+		$self->_foreach_package( $repo =>  $_->{category} => sub {
+			return unless $_->{package} eq $searchString;
+			return unless -d $_->{path};
+			push @matches, $_->{category} . '/' . $_->{package};
+		});
+	});
+	return (sort @matches);
+}
+
 # Description:
 # Search for packages in given repository.
 # @packages=$pxs->searchPackage($searchString [,$mode, $repo] );
@@ -312,69 +384,19 @@ sub searchPackage {
 	my $searchString	= shift;
 	my $mode		= shift;
 	my $repo		= shift;
-	my $dhc;
-	my $dhp;
-	my $tc;
-	my $tp;
 	my @matches		= ();
 
 	if (!$mode) { $mode='like'; }
 	$repo=$self->{'PORTDIR'} if (!$repo);
 	if (!-d $repo) { return (); }
 
-	# - escape special chars >
 	if ($mode eq 'like') {
-		$searchString =~ s/\+/\\\+/g;
-
-		# - read categories >
-		$dhc = new DirHandle($repo);
-		if (defined $dhc) {
-			while (defined($tc = $dhc->read)) {
-				# - not excluded and $_ is a dir?
-				if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $repo.'/'.$tc) {
-					$dhp = new DirHandle($repo.'/'.$tc);
-					while (defined($tp = $dhp->read)) {
-						# - look up if entry matches the search
-						#  (much faster if we already check now) >
-						if ($tp =~m/$searchString/i) {
-							# - not excluded and $_ is a dir?
-							if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $repo.'/'.$tc.'/'.$tp) {
-								push(@matches,$tc.'/'.$tp);
-							}
-						}
-					}
-					undef $dhp;
-				}
-			}
-		}
-		undef $dhc;
+		return $self->_searchPackage_like($searchString, $repo );
 	}
-	elsif ($mode eq 'exact') {
-		# - read categories >
-		$dhc = new DirHandle($repo);
-		if (defined $dhc) {
-			while (defined($tc = $dhc->read)) {
-				# - not excluded and $_ is a dir?
-				if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $repo.'/'.$tc) {
-					$dhp = new DirHandle($repo.'/'.$tc);
-					while (defined($tp = $dhp->read)) {
-						# - look up if entry matches the search
-						#  (much faster if we already check now) >
-						if ($tp eq $searchString) {
-							# - not excluded and $_ is a dir?
-							if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $repo.'/'.$tc.'/'.$tp) {
-								push(@matches,$tc.'/'.$tp);
-							}
-						}
-					}
-					undef $dhp;
-				}
-			}
-		}
-		undef $dhc;
+	if ($mode eq 'exact') {
+		return $self->_searchPackage_exact($searchString, $repo );
 	}
-
-	return (sort @matches);
+	die "Unknown search mode $mode";
 }
 
 # Description:
@@ -914,7 +936,7 @@ PortageXS::Core - Core behaviour role for C<PortageXS>
 
 =head1 VERSION
 
-version 0.2.11
+version 0.2.12
 
 =head1 AUTHORS
 
