@@ -74,10 +74,10 @@ sub new {
         }
     );
 	$pxs->{'VERSION'}			= $PortageXS::VERSION;
+	my $prefix = $pxs->{'PREFIX'}            = path('/');
 
-	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
-	$pxs->{'PKG_DB_DIR'}			= '/var/db/pkg/';
-	$pxs->{'PATH_TO_WORLDFILE'}		= '/var/lib/portage/world';
+	$pxs->{'PKG_DB_DIR'}			= $prefix->child('var/db/pkg');
+	$pxs->{'PATH_TO_WORLDFILE'}		= $prefix->child('var/lib/portage/world');
 	$pxs->{'IS_INITIALIZED'}		= 1;
 
 	$pxs->{'EXCLUDE_DIRS'}{'.'}		= 1;
@@ -90,22 +90,22 @@ sub new {
 	$pxs->{'EXCLUDE_DIRS'}{'CVS'}		= 1;
 	$pxs->{'EXCLUDE_DIRS'}{'.cache'}	= 1;
 
-	$pxs->{'PORTAGEXS_ETC_DIR'}		= '/etc/pxs/';
-	$pxs->{'ETC_DIR'}			= '/etc/';
+	my $etc = $pxs->{'ETC_DIR'}			= $prefix->child('etc');
+	$pxs->{'PORTAGEXS_ETC_DIR'}		= $etc->child('pxs');
 
 	$pxs->{'MAKE_PROFILE_PATHS'} = [
-		'/etc/make.profile',
-		'/etc/portage/make.profile'
+		$etc->child('make.profile'),
+		$etc->child('portage/make.profile'),
 	];
 
-    $pxs->{'MAKE_GLOBALS_PATHS'} = [
-        '/etc/make.globals',
-        '/usr/share/portage/config/make.globals',
-    ];
+	$pxs->{'MAKE_GLOBALS_PATHS'} = [
+		$etc->child('make.globals'),
+		$prefix->child('usr/share/portage/config/make.globals'),
+	];
 
 	$pxs->{'MAKE_CONF_PATHS'} = [
-		'/etc/make.conf',
-		'/etc/portage/make.conf'
+		$etc->child('make.conf'),
+		$etc->child('portage/make.conf'),
 	];
 
 	for my $path ( @{ $pxs->{'MAKE_PROFILE_PATHS'} } ) {
@@ -129,6 +129,8 @@ sub new {
 	if ( not defined $pxs->{'MAKE_GLOBALS_PATH'} ) {
 		die "Error, none of paths for `make.globals` exists." . join q{, }, @{ $pxs->{'MAKE_GLOBALS_PATHS'} };
 	}
+
+	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
 
 	return $pxs;
 }

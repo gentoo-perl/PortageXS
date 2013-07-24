@@ -78,7 +78,7 @@ sub getPortageMakeParam {
 	my $self		= shift;
 	my $param		= shift;
 	my @files		= ();
-	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/portage/make.conf);
+	my @etcfiles	= ( $self->{'MAKE_GLOBALS_PATH'}, $self->{'MAKE_CONF_PATH'}) ;
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
@@ -122,7 +122,7 @@ sub getPortageMakeParam {
 
 	# - Defaults >
 	if ($param eq 'PORTDIR' && !$v) {
-		$v='/usr/portage';
+		$v= $self->{PREFIX}->child('usr/portage');
 	}
 
 	return $v;
@@ -149,9 +149,8 @@ sub getPortdir {
 		return $self->{'PORTDIR'};
 	}
 	else {
-        my $content = path('/usr/share/portage/config/make.globals')->slurp;
-        $content .=  path('/etc/portage/make.conf')->slurp;
-
+		my $content = $self->{'MAKE_GLOBALS_PATH'}->slurp;
+		$content .=  $self->{'MAKE_CONF_PATH'}->slurp;
 		$self->{'PORTDIR'}=$self->getParamFromFile($content,'PORTDIR','lastseen');
 		return $self->{'PORTDIR'};
 	}
@@ -169,8 +168,10 @@ sub getPortdirOverlay {
 	my $self	= shift;
 	my $forcereload	= shift;
 
-    my $content = path('/usr/share/portage/config/make.globals')->slurp;
-    $content .=  path('/etc/make.conf')->slurp;
+	my $content = '';
+
+	$content .=  path($self->{MAKE_GLOBALS_PATH})->slurp;
+	$content .=  path($self->{MAKE_CONF_PATH})->slurp;
 
 	return split(/ /, $self->getParamFromFile($content,'PORTDIR_OVERLAY','lastseen'));
 }
@@ -254,12 +255,12 @@ sub searchInstalledPackage {
 sub _foreach_category {
 	my ( $self, $repo , $callback ) = @_;
 	return () unless -d $repo;
-	my $dhc = DirHandle->new($repo);
-	while(defined(my $tc = $dhc->read()) ){
-		next if $self->{'EXCLUDE_DIRS'}{$tc};
+	my $dhc = path($repo)->iterator;
+	while(defined(my $tc = $dhc->()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tc->basename};
 		local $_ = {
-			category => $tc,
-			path     => $repo . '/' . $tc
+			category => $tc->basename,
+			path     => $tc
 		};
 		my $result = $callback->();
 		return if defined $result and $result eq 'BAIL';
@@ -271,13 +272,13 @@ sub _foreach_package {
 	my $category_path = $repo . '/' . $category;
 	return () unless -d $category_path;
 	return () unless -r $category_path;
-	my $dhc = DirHandle->new( $category_path );
-	while(defined(my $tp = $dhc->read()) ){
-		next if $self->{'EXCLUDE_DIRS'}{$tp};
+	my $dhc = path( $category_path )->iterator;
+	while(defined(my $tp = $dhc->()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tp->basename};
 		local $_ = {
 			category => $category,
-			package  => $tp,
-			path     => $repo . '/' . $category . '/' . $tp
+			package  => $tp->basename,
+			path     => $tp
 		};
 		my $result = $callback->();
 		return if defined $result and $result eq 'BAIL';
@@ -882,7 +883,7 @@ sub searchPackageByHerd {
 		if (-e $metaxml ) {
 			my $buffer= $metaxml->slurp();
 			if ($buffer =~ m/<herd>$searchString(.*)?<\/herd>/i) {
-				push(@matches,$_);
+				push(@matches,$metaxml->parent);
 			}
 		}
 	}
