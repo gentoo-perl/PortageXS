@@ -10,14 +10,14 @@ my $pxs = PortageXS->new();
 
 # - getUsedesc >
 {
-	my $usedesc = $pxs->getUsedesc('perl',$pxs->getPortdir());
-	ok($usedesc,"getUsedesc('perl','".$pxs->getPortdir()."'): ".$usedesc);
+	my $usedesc = $pxs->getUsedesc('perl',$pxs->portdir());
+	ok($usedesc,"getUsedesc('perl','".$pxs->portdir()."'): ".$usedesc);
 }
 
 # - getUsedescs >
 {
-	my @usedescs = $pxs->getUsedescs('perl',$pxs->getPortdir());
-	ok(($#usedescs+1),"getUsedescs('perl','".$pxs->getPortdir()."'): ".join(" ",@usedescs));
+	my @usedescs = $pxs->getUsedescs('perl',$pxs->portdir());
+	ok(($#usedescs+1),"getUsedescs('perl','".$pxs->portdir()."'): ".join(" ",@usedescs));
 }
 
 # - sortUseflags >

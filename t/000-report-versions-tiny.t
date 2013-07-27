@@ -49,14 +49,14 @@ sub pmver {
 }
 
 eval { $v .= pmver('Carp','any version') };
-eval { $v .= pmver('DirHandle','any version') };
 eval { $v .= pmver('Dist::Zilla::PluginBundle::Author::KENTNL','v1.7.4') };
 eval { $v .= pmver('Dist::Zilla::PluginBundle::Author::KENTNL::Lite','v1.3.0') };
-eval { $v .= pmver('Exporter','any version') };
 eval { $v .= pmver('File::Find','any version') };
 eval { $v .= pmver('File::Temp','any version') };
+eval { $v .= pmver('IO::Handle','any version') };
 eval { $v .= pmver('Module::Build','0.4005') };
 eval { $v .= pmver('Moo','1.000008') };
+eval { $v .= pmver('Path::Tiny','any version') };
 eval { $v .= pmver('Role::Tiny','any version') };
 eval { $v .= pmver('Role::Tiny::With','any version') };
 eval { $v .= pmver('Scalar::Util','any version') };

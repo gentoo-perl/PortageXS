@@ -1,5 +1,36 @@
 Revision history for PortageXS
 
+0.3.1 2013-07-27T08:58:15Z
+ [00 MAJOR Changes]
+ - Guts overhaulled so everywhere file IO was done directly, or via
+   PortageXS::Core::getFileContents, it is instead now done by Path::Tiny.
+ - DirHandle based traversal replaced by Path::Tiny iterate()
+ - Many linewise readers replaced with shorter Path::Tiny->lines
+ - BREAKAGES EXPECED
+ - Primary configuaration code now modularised to MakeConf, and everywhere
+   that used that 'getParamFromFile' previously is now proxied there via
+   pxs->config-getParam()
+ - getPortdir() is now deprecated in favour of the lowercase portdir, which
+   is an inroad to eventually one day using moo lazy accessors.
+ - more dependence on shared configuration for paths, but still warty
+
+ [Dependencies::Added / develop requires]
+ - Test::CPAN::Changes 0.19
+
+ [Dependencies::Added / runtime requires]
+ - IO::Handle
+ - Path::Tiny
+
+ [Dependencies::Removed / runtime requires]
+ - DirHandle
+ - Exporter
+
+ [Documentation]
+ - Code now annotated with MetaPOD
+
+ [Misc]
+ - Examples moved to top level
+
 0.3.0 2013-07-27T06:13:05Z
  [00 Major Changes]
  - Color logic factored out into its own module

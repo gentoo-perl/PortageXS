@@ -9,10 +9,14 @@ my $pxs=PortageXS->new();
 
 my @repos=();
 
-push(@repos,$pxs->getPortdir());
+if ( not $ARGV[0] ) {
+    die "Specify a herd to search for packages";
+}
+
+push(@repos,$pxs->portdir());
 push(@repos,$pxs->getPortdirOverlay());
 
 foreach (@repos) {
 	print "Repo: ".$_.":\n";
-	print join("\n",$pxs->searchPackageByMaintainer($ARGV[0],$_))."\n\n";
+	print join("\n",$pxs->searchPackageByHerd($ARGV[0],$_))."\n\n";
 }

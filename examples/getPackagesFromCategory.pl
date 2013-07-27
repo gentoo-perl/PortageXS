@@ -6,7 +6,7 @@ use strict;
 use PortageXS;
 
 my $pxs=PortageXS->new();
-my $repo=$pxs->getPortdir();
+my $repo=$pxs->portdir();
 exit(0) if !$ARGV[0];
 $repo=$ARGV[1] if $ARGV[1];
 print "List of available packages in category $ARGV[0] in repo $repo:\n";

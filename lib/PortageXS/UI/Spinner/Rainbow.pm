@@ -1,15 +1,15 @@
 use strict;
 use warnings;
 
-package PortageXS::UI::Spinner;
+package PortageXS::UI::Spinner::Rainbow;
 BEGIN {
-  $PortageXS::UI::Spinner::AUTHORITY = 'cpan:KENTNL';
+  $PortageXS::UI::Spinner::Rainbow::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::UI::Spinner::VERSION = '0.3.1';
+  $PortageXS::UI::Spinner::Rainbow::VERSION = '0.3.1';
 }
 
-# ABSTRACT: Dancing Console progress spinner bling.
+# ABSTRACT: Console progress spinner bling.
 # -----------------------------------------------------------------------------
 #
 # PortageXS::UI::Spinner
@@ -28,50 +28,46 @@ BEGIN {
 # -----------------------------------------------------------------------------
 
 use Moo;
+extends 'PortageXS::UI::Spinner';
+
 use IO::Handle;
 
 
 
 
-has spinstate => ( is => rwp =>, default => sub { 0 } );
+has colorstate => ( is => rwp =>, default => sub { 0 } );
 
 
-has output_handle => (
+has colorstates => (
     is      => ro =>,
     default => sub {
-        my $handle = \*STDOUT;
-        $handle->autoflush(1);
-        return $handle;
+        require Term::ANSIColor;
+        my @c;
+        push @c, map { Term::ANSIColor::color( 'bold ansi' . $_ ) } 1 .. 15;
+        push @c, map { Term::ANSIColor::color( 'ansi' . $_ ) } 1 .. 15;
+        \@c;
     }
 );
 
 
-has spinstates => (
-    is      => ro =>,
-    default => sub {
-        [ '/', '-', '\\', '|' ];
-    }
-);
+sub _last_colorstate { return $#{ $_[0]->colorstates } }
 
 
-sub _last_spinstate { return $#{ $_[0]->spinstates } }
-
-
-sub _increment_spinstate {
+sub _increment_colorstate {
     my $self      = shift;
-    my $rval      = $self->spinstate;
-    my $nextstate = $rval + 1;
-    if ( $nextstate > $self->_last_spinstate ) {
+    my $rval      = $self->colorstate;
+    my $nextstate = $rval + 0.3;
+    if ( $nextstate > $self->_last_colorstate ) {
         $nextstate = 0;
     }
-    $self->_set_spinstate($nextstate);
+    $self->_set_colorstate($nextstate);
     return $rval;
 }
 
 
-sub _get_next_spinstate {
-    my (@states) = @{ $_[0]->spinstates };
-    return $states[ $_[0]->_increment_spinstate ];
+sub _get_next_colorstate {
+    my (@states) = @{ $_[0]->colorstates };
+    return $states[ $_[0]->_increment_colorstate ];
 }
 
 
@@ -83,7 +79,11 @@ sub _print_to_output {
 
 sub spin {
     my $self = shift;
-    $self->_print_to_output( "\b" . $self->_get_next_spinstate );
+    require Term::ANSIColor;
+    $self->_print_to_output( "\b"
+          . $self->_get_next_colorstate
+          . $self->_get_next_spinstate
+          . Term::ANSIColor::color('reset') );
 }
 
 
@@ -101,7 +101,7 @@ __END__
 
 =head1 NAME
 
-PortageXS::UI::Spinner - Dancing Console progress spinner bling.
+PortageXS::UI::Spinner::Rainbow - Console progress spinner bling.
 
 =head1 VERSION
 
@@ -109,7 +109,7 @@ version 0.3.1
 
 =head1 SYNOPSIS
 
-    use PortageXS::UI::Spinner;
+    use PortageXS::UI::Spinner::Rainbow;
 
     my $spinner = PortageXS::UI::Spinner->new(%attributes);
 
@@ -137,44 +137,27 @@ This is just
 
 =head1 ATTRIBUTES
 
-=head2 C<spinstate>
+=head2 C<colorstate>
 
-The index of the I<next> spin state to dispatch.
+The index of the I<next> color state to dispatch.
 
-=head2 C<output_handle>
+=head2 C<colorstates>
 
-The C<filehandle> to write L<< C<spin>|/spin >> and L<< C<reset>|/reset >> output to.
-
-Defaults to C<*STDOUT>.
-
-B<Note:> Turns on C<autoflush> for C<*STDOUT> if no handle is passed explicitly.
-
-=head2 C<spinstates>
-
-The array of spinstates to dispatch
-
-Defaults to:
-
-    qw(
-        /
-        -
-        \
-        |
-    )
+A list of colors to dispatch.
 
 =head1 PRIVATE METHODS
 
-=head2 C<_last_spinstate>
+=head2 C<_last_colorstate>
 
-The number of L<< C<spinstates>|/spinstates >> this C<::Spinner> object has.
+The number of L<< C<colorstates>|/colorstates >> this C<::Spinner::Rainbow> object has.
 
-=head2 C<_increment_spinstate>
+=head2 C<_increment_colorstate>
 
-Increment the position within the L<< C<spinstates>|/spinstates >> array by one, updating L<< C<spinstate>|/spinstate >>
+Increment the position within the L<< C<colorstates>|/colorstates >> array by one, updating L<< C<colorstate>|/colorstate >>
 
-=head2 C<_get_next_spinstate>
+=head2 C<_get_next_colorstate>
 
-Returns the next character from the L<< C<spinstates>|/spinstates >> array
+Returns the next character from the L<< C<colorstates>|/colorstates >> array
 
 =head2 C<_print_to_output>
 
@@ -183,8 +166,8 @@ Internal wrapper to proxy C<print> to L<< C<output_handle>|/output_handle >>
 =begin MetaPOD::JSON v1.1.0
 
 {
-    "namespace":"PortageXS::UI::Spinner",
-    "inherits":"Moo::Object",
+    "namespace":"PortageXS::UI::Spinner::Rainbow",
+    "inherits":["PortageXS::UI::Spinner"],
     "interface":"class"
 }
 

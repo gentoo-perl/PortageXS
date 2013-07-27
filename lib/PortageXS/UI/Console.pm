@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::UI::Console::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::UI::Console::VERSION = '0.3.0';
+  $PortageXS::UI::Console::VERSION = '0.3.1';
 }
 # ABSTRACT: Console interface role for PortageXS
 # -----------------------------------------------------------------------------
@@ -25,6 +25,7 @@ BEGIN {
 # version.
 #
 # -----------------------------------------------------------------------------
+
 
 use Role::Tiny;
 
@@ -207,7 +208,17 @@ PortageXS::UI::Console - Console interface role for PortageXS
 
 =head1 VERSION
 
-version 0.3.0
+version 0.3.1
+
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::UI::Console",
+    "interface":"role"
+}
+
+
+=end MetaPOD::JSON
 
 =head1 AUTHORS
 

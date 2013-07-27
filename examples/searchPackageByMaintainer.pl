@@ -9,7 +9,7 @@ my $pxs=PortageXS->new();
 
 my @repos=();
 
-push(@repos,$pxs->getPortdir());
+push(@repos,$pxs->portdir());
 push(@repos,$pxs->getPortdirOverlay());
 
 foreach (@repos) {
