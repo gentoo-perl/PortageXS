@@ -14,8 +14,8 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 
 # - getFileContents >
 {
-	my $content = $pxs->getFileContents('/etc/portage/make.conf');
-	ok($content ne '','getFileContents of /etc/portage/make.conf');
+	my $content = $pxs->getFileContents('@GENTOO_PORTAGE_EPREFIX@/etc/portage/make.conf');
+	ok($content ne '','getFileContents of @GENTOO_PORTAGE_EPREFIX@/etc/portage/make.conf');
 }
 
 # - searchInstalledPackage >
@@ -26,8 +26,8 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 
 # - getParamFromFile >
 {
-	my $param = $pxs->getParamFromFile($pxs->getFileContents('/etc/portage/make.conf'),'CFLAGS','lastseen');
-	ok($param ne '','getParamFromFile /etc/portage/make.conf - CFLAGS: '.$param);
+	my $param = $pxs->getParamFromFile($pxs->getFileContents('@GENTOO_PORTAGE_EPREFIX@/etc/portage/make.conf'),'CFLAGS','lastseen');
+	ok($param ne '','getParamFromFile @GENTOO_PORTAGE_EPREFIX@/etc/portage/make.conf - CFLAGS: '.$param);
 }
 
 # - getUseSettingsOfInstalledPackage >
@@ -65,8 +65,8 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 
 # - fileBelongsToPackage >
 {
-	my @packages = $pxs->fileBelongsToPackage('/etc/gentoo-release');
-	ok($#packages==0,'fileBelongsToPackage - /etc/gentoo-release: '.$packages[0]);
+	my @packages = $pxs->fileBelongsToPackage('@GENTOO_PORTAGE_EPREFIX@/etc/gentoo-release');
+	ok($#packages==0,'fileBelongsToPackage - @GENTOO_PORTAGE_EPREFIX@/etc/gentoo-release: '.$packages[0]);
 }
 ok(!$pxs->fileBelongsToPackage('/this/path/most/likely/does/not/exist'),'fileBelongsToPackage bogus test');
 
