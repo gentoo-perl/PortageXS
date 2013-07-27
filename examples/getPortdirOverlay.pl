@@ -3,8 +3,8 @@
 use warnings;
 use strict;
 
-use lib '../..';
 use PortageXS;
 
 my $pxs=PortageXS->new();
-print "Profile: ".$pxs->getProfilePath()."\n";
+print "Overlays:\n";
+print join("\n",$pxs->getPortdirOverlay())."\n";

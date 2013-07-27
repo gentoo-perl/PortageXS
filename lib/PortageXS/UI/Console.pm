@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::UI::Console::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::UI::Console::VERSION = '0.2.12';
+  $PortageXS::UI::Console::VERSION = '0.3.0';
 }
 # ABSTRACT: Console interface role for PortageXS
 # -----------------------------------------------------------------------------
@@ -26,52 +26,47 @@ BEGIN {
 #
 # -----------------------------------------------------------------------------
 
-require Exporter;
-our @ISA = qw(Exporter PortageXS);
-our @EXPORT = qw(
-			printColored
-			print_ok
-			print_err
-			print_info
-			setPrintColor
-			cmdAskUser
-			formatUseflags
-			disableColors
-		);
+use Role::Tiny;
 
 # Description:
 # Prints gentoo-style items.
 sub printColored {
-	my $self	= shift;
-	print ' ' . $self->{'COLORS'}{shift()} . '* ' . $self->{'COLORS'}{'RESET'} . shift() , @_;
+    my ( $self , @rest ) = @_;
+    warn "please use self->colors->printColored(...)";
+    return $_[0]->colors->printColored(@rest);
 }
 
 # Description:
 # Wrapper for printColored >
 sub print_ok {
-	my $self	= shift;
-	$self->printColored('LIGHTGREEN',shift);
+	my ($self,@rest)	= @_;
+    warn "please use self->colors->print_ok(...)";
+    return $self->colors->print_ok(@rest);
 }
 
 # Description:
 # Wrapper for printColored >
 sub print_err {
-	my $self	= shift;
-	$self->printColored('RED',shift);
+	my ($self,@rest)	= @_;
+    warn "please use self->colors->print_err(...)";
+    return $self->colors->print_err(@rest);
 }
 
 # Description:
 # Wrapper for printColored >
 sub print_info {
-	my $self	= shift;
-	$self->printColored('YELLOW',shift);
+	my ($self,@rest)	= @_;
+    warn "please use self->colors->print_err(...)";
+    return $self->colors->print_info(@rest);
 }
 
 # Description:
 # Changes color to given param >
 sub setPrintColor {
-	my $self	= shift;
-	print $self->{'COLORS'}{shift()};
+	my ($self,@rest)	= @_;
+    warn "please use self->colors->printColor(...)";
+	return $self->colors->printColor(@rest);
+
 }
 
 # Description:
@@ -166,7 +161,13 @@ sub formatUseflags {
 			$c{'useflag'}=~s/\*//g;
 		}
 
-		$c{'compiled'}=$self->{'COLORS'}{$c{'color'}}.$c{'prefix'}.$c{'useflag'}.$self->{'COLORS'}{'RESET'}.$c{'suffix'};
+        my $c = $self->colors;
+
+		$c{'compiled'}=
+            $c->getColor($c{'color'}) .
+            $c{'prefix'}.
+            $c{'useflag'}.
+            $c->getColor('RESET').$c{'suffix'};
 
 		if ($masked{$c{'useflag'}}) {
 			$c{'compiled'}='('.$c{'compiled'}.')';
@@ -187,11 +188,9 @@ sub formatUseflags {
 # Disables colors. / Unsets set colors in PortageXS.pm
 # $pxs->disableColors();
 sub disableColors {
-	my $self	= shift;
-	foreach my $k1 (keys %{$self->{'COLORS'}}) {
-		$self->{'COLORS'}{$k1}='';
-	}
-	return 1;
+    my $self	= shift;
+    warn "please use self->colors->disableColors";
+    return $self->colors->disableColors;
 }
 
 1;
@@ -208,7 +207,7 @@ PortageXS::UI::Console - Console interface role for PortageXS
 
 =head1 VERSION
 
-version 0.2.12
+version 0.3.0
 
 =head1 AUTHORS
 

@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::VERSION = '0.2.12';
+  $PortageXS::VERSION = '0.3.0';
 }
 # ABSTRACT: Portage abstraction layer for perl
 
@@ -27,47 +27,57 @@ BEGIN {
 #
 # -----------------------------------------------------------------------------
 
-use PortageXS::Core;
-use PortageXS::System;
+use Role::Tiny::With;
+
+
+with 'PortageXS::Core';
+with 'PortageXS::System';
+with 'PortageXS::UI::Console';
+with 'PortageXS::Useflags';
+
 use PortageXS::Version;
-use PortageXS::UI::Console;
-use PortageXS::Useflags;
-use Term::ANSIColor;
 
-require Exporter;
+sub colors {
+    my $self = shift;
+    return $self->{colors} if defined $self->{colors};
+    return $self->{colors} = do {
+        require PortageXS::Colors;
+        my $colors   = PortageXS::Colors->new();
+        my $makeconf = $self->getFileContents( $self->{'MAKE_CONF_PATH'} );
+        my $want_nocolor =
+          lc( $self->getParamFromFile( $makeconf, 'NOCOLOR', 'lastseen' ) );
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(
-			getArch
-			getPortdir
-			getPortdirOverlay
-			getFileContents
-			searchInstalledPackage
-			getParamFromFile
-			getUseSettingsOfInstalledPackage
-			printColored
-			print_ok
-			print_err
-			print_info
-			getPortageXScategorylist
-			getAvailableEbuilds
-			getBestEbuildVersion
-			cmdExecute
-			getAvailableArches
-			getPackagesFromCategory
-			fileBelongsToPackage
-			getFilesOfInstalledPackage
-			cmdAskUser
-			getHomedir
-			getEbuildVersion
-			getEbuildName
-		);
+        if ( $want_nocolor eq 'true' ) {
+            $colors->disableColors;
+        }
+        $colors;
+    };
+}
 
 sub new {
 	my $self	= shift ;
 
 	my $pxs = bless {}, $self;
-
+    require Tie::Hash::Method;
+    my %blacklist = (
+        'COLORS' => 'please use pxs->colors ( PortageXS::Colors )'
+    );
+    tie %{$pxs}, 'Tie::Hash::Method' => (
+        FETCH => sub {
+            my ( $self, $key ) = @_;
+            if ( exists $blacklist{ $_[1] } ) {
+                die "$_[1] is gone: " . $blacklist{ $_[1] };
+            }
+            $_[0]->base_hash->{ $_[1] };
+        },
+        STORE => sub {
+            my ( $self, $key, $value ) = @_;
+            if ( exists $blacklist{ $_[1] } ) {
+                die "$_[1] is gone: " . $blacklist{ $_[1] };
+            }
+            $_[0]->base_hash->{ $_[1] } = $_[2];
+        }
+    );
 	$pxs->{'VERSION'}			= $PortageXS::VERSION;
 
 	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
@@ -112,30 +122,6 @@ sub new {
 	if ( not defined $pxs->{'MAKE_CONF_PATH'} ) {
 		die "Error, none of paths for `make.conf` exists." . join q{, }, @{ $pxs->{'MAKE_CONF_PATHS'} };
 	}
-	# - init colors >
-	$pxs->{'COLORS'}{'YELLOW'}		= color('bold yellow');
-	$pxs->{'COLORS'}{'GREEN'}		= color('green');
-	$pxs->{'COLORS'}{'LIGHTGREEN'}		= color('bold green');
-	$pxs->{'COLORS'}{'WHITE'}		= color('bold white');
-	$pxs->{'COLORS'}{'CYAN'}		= color('bold cyan');
-	$pxs->{'COLORS'}{'RED'}			= color('bold red');
-	$pxs->{'COLORS'}{'BLUE'}		= color('bold blue');
-	$pxs->{'COLORS'}{'RESET'}		= color('reset');
-
-	my $makeconf = $pxs->getFileContents($pxs->{'MAKE_CONF_PATH'});
-	my $want_nocolor = lc($pxs->getParamFromFile($makeconf,'NOCOLOR','lastseen'));
-
-	if ($want_nocolor eq 'true') {
-		$pxs->{'COLORS'}{'YELLOW'}		= '';
-		$pxs->{'COLORS'}{'GREEN'}		= '';
-		$pxs->{'COLORS'}{'LIGHTGREEN'}		= '';
-		$pxs->{'COLORS'}{'WHITE'}		= '';
-		$pxs->{'COLORS'}{'CYAN'}		= '';
-		$pxs->{'COLORS'}{'RED'}			= '';
-		$pxs->{'COLORS'}{'BLUE'}		= '';
-		$pxs->{'COLORS'}{'RESET'}		= '';
-	}
-
 	return $pxs;
 }
 
@@ -154,7 +140,7 @@ PortageXS - Portage abstraction layer for perl
 
 =head1 VERSION
 
-version 0.2.12
+version 0.3.0
 
 =head1 NAMING
 

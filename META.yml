@@ -23,32 +23,39 @@ name: PortageXS
 provides:
   PortageXS:
     file: lib/PortageXS.pm
-    version: v0.2.12
+    version: v0.3.0
+  PortageXS::Colors:
+    file: lib/PortageXS/Colors.pm
+    version: v0.3.0
   PortageXS::Core:
     file: lib/PortageXS/Core.pm
-    version: v0.2.12
+    version: v0.3.0
   PortageXS::System:
     file: lib/PortageXS/System.pm
-    version: v0.2.12
+    version: v0.3.0
   PortageXS::UI::Console:
     file: lib/PortageXS/UI/Console.pm
-    version: v0.2.12
+    version: v0.3.0
   PortageXS::UI::Spinner:
     file: lib/PortageXS/UI/Spinner.pm
-    version: v0.2.12
+    version: v0.3.0
   PortageXS::Useflags:
     file: lib/PortageXS/Useflags.pm
-    version: v0.2.12
+    version: v0.3.0
   PortageXS::Version:
     file: lib/PortageXS/Version.pm
-    version: v0.2.12
+    version: v0.3.0
 requires:
   Carp: 0
   DirHandle: 0
   Exporter: 0
+  Moo: 1.000008
+  Role::Tiny: 0
+  Role::Tiny::With: 0
   Scalar::Util: 0
   Shell::EnvImporter: 0
   Term::ANSIColor: 0
+  Tie::Hash::Method: 0
   overload: 0
   perl: v5.10.0
   strict: 0
@@ -57,7 +64,7 @@ resources:
   bugtracker: https://github.com/gentoo-perl/PortageXS/issues
   homepage: https://github.com/gentoo-perl/PortageXS
   repository: https://github.com/gentoo-perl/PortageXS.git
-version: 0.2.12
+version: 0.3.0
 x_BuiltWith:
   modules:
     Carp: 1.29
@@ -68,6 +75,9 @@ x_BuiltWith:
     File::Find: 1.23
     File::Temp: 0.2301
     Module::Build: 0.4005
+    Moo: 1.002
+    Role::Tiny: 1.002005
+    Role::Tiny::With: NA(undef)
     Scalar::Util: 1.27
     Shell::EnvImporter: 1.06
     Term::ANSIColor: 4.02
@@ -76,6 +86,7 @@ x_BuiltWith:
     Test::More: 0.98
     Test::Pod: 1.48
     Test::Simple: 0.98
+    Tie::Hash::Method: 0.02
     lib: 0.63
     overload: 1.22
     perl: 'NA(skipped: perl)'

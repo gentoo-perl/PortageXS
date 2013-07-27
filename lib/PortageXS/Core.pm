@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::Core::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Core::VERSION = '0.2.12';
+  $PortageXS::Core::VERSION = '0.3.0';
 }
 
 # ABSTRACT: Core behaviour role for C<PortageXS>
@@ -30,45 +30,7 @@ BEGIN {
 
 use DirHandle;
 use Shell::EnvImporter;
-require Exporter;
-our @ISA = qw(Exporter PortageXS);
-our @EXPORT = qw(
-			getArch
-			getProfileTree
-			getPortageMakeParam
-			getPortageMakeParamHelper
-			getPortdir
-			getPortdirOverlay
-			getFileContents
-			searchInstalledPackage
-			searchPackage
-			_searchPackage_like
-			_searchPackage_exact
-			_foreach_category
-			_foreach_package
-			getParamFromFile
-			getUseSettingsOfInstalledPackage
-			getAvailableEbuilds
-			getAvailableEbuildVersions
-			getBestEbuildVersion
-			getPortageXScategorylist
-			getAvailableArches
-			getPackagesFromCategory
-			fileBelongsToPackage
-			getFilesOfInstalledPackage
-			getEbuildVersion
-			getEbuildName
-			getReponame
-			resolveMirror
-			getCategories
-			getProfilePath
-			resetCaches
-			getPackagesFromWorld
-			recordPackageInWorld
-			removePackageFromWorld
-			searchPackageByMaintainer
-			searchPackageByHerd
-		);
+use Role::Tiny;
 
 # Description:
 # Returnvalue is ARCH set in the system-profile.
@@ -122,7 +84,7 @@ sub getPortageMakeParam {
 	my $self		= shift;
 	my $param		= shift;
 	my @files		= ();
-	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/make.conf);
+	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/portage/make.conf);
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
@@ -936,7 +898,7 @@ PortageXS::Core - Core behaviour role for C<PortageXS>
 
 =head1 VERSION
 
-version 0.2.12
+version 0.3.0
 
 =head1 AUTHORS
 

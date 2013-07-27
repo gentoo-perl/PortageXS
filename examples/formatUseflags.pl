@@ -3,7 +3,6 @@
 use warnings;
 use strict;
 
-use lib '../..';
 use PortageXS;
 
 
