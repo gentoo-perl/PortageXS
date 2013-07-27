@@ -13,7 +13,7 @@ Revision history for {{$dist->name}}
    works.
 
  [Dependencies::Added / runtime requires]
- - Moo
+ - Moo 1.000008
  - Role::Tiny
  - Role::Tiny::With
  - Tie::Hash::Method
