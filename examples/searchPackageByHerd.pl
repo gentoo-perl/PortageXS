@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 
-use lib '../..';
 use PortageXS;
 
 my $pxs=PortageXS->new();
