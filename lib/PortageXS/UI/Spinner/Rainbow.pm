@@ -1,9 +1,9 @@
 use strict;
 use warnings;
 
-package PortageXS::UI::Spinner;
+package PortageXS::UI::Spinner::Rainbow;
 
-# ABSTRACT: Dancing Console progress spinner bling.
+# ABSTRACT: Console progress spinner bling.
 # -----------------------------------------------------------------------------
 #
 # PortageXS::UI::Spinner
@@ -22,13 +22,15 @@ package PortageXS::UI::Spinner;
 # -----------------------------------------------------------------------------
 
 use Moo;
+extends 'PortageXS::UI::Spinner';
+
 use IO::Handle;
 
 =begin MetaPOD::JSON v1.1.0
 
 {
-    "namespace":"PortageXS::UI::Spinner",
-    "inherits":"Moo",
+    "namespace":"PortageXS::UI::Spinner::Rainbow",
+    "inherits":["PortageXS::UI::Spinner"],
     "interface":"class"
 }
 
@@ -38,7 +40,7 @@ use IO::Handle;
 
 =head1 SYNOPSIS
 
-    use PortageXS::UI::Spinner;
+    use PortageXS::UI::Spinner::Rainbow;
 
     my $spinner = PortageXS::UI::Spinner->new(%attributes);
 
@@ -50,89 +52,65 @@ use IO::Handle;
 
 =cut
 
-=attr C<spinstate>
+=attr C<colorstate>
 
-The index of the I<next> spin state to dispatch.
-
-=cut
-
-has spinstate => ( is => rwp =>, default => sub { 0 } );
-
-=attr C<output_handle>
-
-The C<filehandle> to write L<< C<spin>|/spin >> and L<< C<reset>|/reset >> output to.
-
-Defaults to C<*STDOUT>.
-
-B<Note:> Turns on C<autoflush> for C<*STDOUT> if no handle is passed explicitly.
+The index of the I<next> color state to dispatch.
 
 =cut
 
-has output_handle => (
+has colorstate => ( is => rwp =>, default => sub { 0 } );
+
+=attr C<colorstates>
+
+A list of colors to dispatch.
+
+=cut
+
+has colorstates => (
     is      => ro =>,
     default => sub {
-        my $handle = \*STDOUT;
-        $handle->autoflush(1);
-        return $handle;
+        require Term::ANSIColor;
+        my @c;
+        push @c, map { Term::ANSIColor::color( 'bold ansi' . $_ ) } 1 .. 15;
+        push @c, map { Term::ANSIColor::color( 'ansi' . $_ ) } 1 .. 15;
+        \@c;
     }
 );
 
-=attr C<spinstates>
+=p_method C<_last_colorstate>
 
-The array of spinstates to dispatch
-
-Defaults to:
-
-    qw(
-        /
-        -
-        \
-        |
-    )
+The number of L<< C<colorstates>|/colorstates >> this C<::Spinner::Rainbow> object has.
 
 =cut
 
-has spinstates => (
-    is      => ro =>,
-    default => sub {
-        [ '/', '-', '\\', '|' ];
-    }
-);
+sub _last_colorstate { return $#{ $_[0]->colorstates } }
 
-=p_method C<_last_spinstate>
+=p_method C<_increment_colorstate>
 
-The number of L<< C<spinstates>|/spinstates >> this C<::Spinner> object has.
+Increment the position within the L<< C<colorstates>|/colorstates >> array by one, updating L<< C<colorstate>|/colorstate >>
 
 =cut
 
-sub _last_spinstate { return $#{ $_[0]->spinstates } }
-
-=p_method C<_increment_spinstate>
-
-Increment the position within the L<< C<spinstates>|/spinstates >> array by one, updating L<< C<spinstate>|/spinstate >>
-
-=cut
-
-sub _increment_spinstate {
+sub _increment_colorstate {
     my $self      = shift;
-    my $rval      = $self->spinstate;
-    my $nextstate = $rval + 1;
-    if ( $nextstate > $self->_last_spinstate ) {
+    my $rval      = $self->colorstate;
+    my $nextstate = $rval + 0.3;
+    if ( $nextstate > $self->_last_colorstate ) {
         $nextstate = 0;
     }
-    $self->_set_spinstate($nextstate);
+    $self->_set_colorstate($nextstate);
     return $rval;
 }
 
-=p_method C<_get_next_spinstate>
+=p_method C<_get_next_colorstate>
 
-Returns the next character from the L<< C<spinstates>|/spinstates >> array
+Returns the next character from the L<< C<colorstates>|/colorstates >> array
 
 =cut
 
-sub _get_next_spinstate {
-    my (@states) = @{ $_[0]->spinstates };
-    return $states[ $_[0]->_increment_spinstate ];
+sub _get_next_colorstate {
+    my (@states) = @{ $_[0]->colorstates };
+    return $states[ $_[0]->_increment_colorstate ];
 }
 
 =p_method C<_print_to_output>
@@ -154,7 +132,11 @@ Emits a backspace and the next spin character to L<< C<output_handle>|/output_ha
 
 sub spin {
     my $self = shift;
-    $self->_print_to_output( "\b" . $self->_get_next_spinstate );
+    require Term::ANSIColor;
+    $self->_print_to_output( "\b"
+          . $self->_get_next_colorstate
+          . $self->_get_next_spinstate
+          . Term::ANSIColor::color('reset') );
 }
 
 =method C<reset>
