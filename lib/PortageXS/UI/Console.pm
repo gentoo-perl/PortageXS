@@ -20,6 +20,17 @@ package PortageXS::UI::Console;
 #
 # -----------------------------------------------------------------------------
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::UI::Console",
+    "interface":"role"
+}
+
+=end MetaPOD::JSON
+
+=cut
+
 use Role::Tiny;
 
 # Description:

@@ -20,6 +20,16 @@ package PortageXS::System;
 #
 # -----------------------------------------------------------------------------
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::System",
+    "interface":"role"
+}
+
+=end MetaPOD::JSON
+
+=cut
 
 use Role::Tiny;
 # Description:

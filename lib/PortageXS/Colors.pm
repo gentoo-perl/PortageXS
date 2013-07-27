@@ -8,6 +8,18 @@ package PortageXS::Colors;
 
 use Moo 1.000008;
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Colors",
+    "interface":"class",
+    "inherits":"Moo::Object"
+}
+
+=end MetaPOD::JSON
+
+=cut
+
 my %colors;
 
 sub _has_color {

@@ -9,6 +9,18 @@ package PortageXS::MakeConf;
 use Moo;
 use Path::Tiny;
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::MakeConf",
+    "interface":"class",
+    "inherits":"Moo::Object"
+}
+
+=end MetaPOD::JSON
+
+=cut
+
 sub _has_path {
     my ( $name, @args ) = @_;
     push @args, coerce => sub {

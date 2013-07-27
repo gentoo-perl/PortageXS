@@ -24,6 +24,22 @@ package PortageXS;
 use Role::Tiny::With;
 use Path::Tiny qw(path);
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS",
+    "interface":"class",
+    "does":[
+        "PortageXS::Core",
+        "PortageXS::System",
+        "PortageXS::UI::Console",
+        "PortageXS::Useflags"
+    ]
+}
+
+=end MetaPOD::JSON
+
+=cut
 
 with 'PortageXS::Core';
 with 'PortageXS::System';

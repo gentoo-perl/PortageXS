@@ -23,6 +23,17 @@ package PortageXS::Useflags;
 use Path::Tiny qw(path);
 use Role::Tiny;
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Useflags",
+    "interface":"role"
+}
+
+=end MetaPOD::JSON
+
+=cut
+
 # Description:
 # Returns useflag description of the given useflag and repository.
 # Returns only global usedescs.

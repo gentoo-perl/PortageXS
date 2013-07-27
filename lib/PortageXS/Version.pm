@@ -5,6 +5,17 @@ package PortageXS::Version;
 use strict;
 use warnings;
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Version",
+    "interface":"class"
+}
+
+=end MetaPOD::JSON
+
+=cut
+
 =head1 DESCRIPTION
 
 This class models Gentoo versions as described in L<http://devmanual.gentoo.org/ebuild-writing/file-format/index.html>.

@@ -26,6 +26,17 @@ use Path::Tiny qw(path);
 use Shell::EnvImporter;
 use Role::Tiny;
 
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Core",
+    "interface":"role"
+}
+
+=end MetaPOD::JSON
+
+=cut
+
 # Description:
 # Returnvalue is ARCH set in the system-profile.
 # Wrapper for old getArch()-version. Use getPortageMakeParam() instead.

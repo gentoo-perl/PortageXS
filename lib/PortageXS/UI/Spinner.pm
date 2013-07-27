@@ -28,7 +28,7 @@ use IO::Handle;
 
 {
     "namespace":"PortageXS::UI::Spinner",
-    "inherits":"Moo",
+    "inherits":"Moo::Object",
     "interface":"class"
 }
 
