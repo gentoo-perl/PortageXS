@@ -9,8 +9,14 @@ Revision history for {{$dist->name}}
  - ::UI::Console has most its methods deprecated now
 
  [Bugfix]
- - another residual path to make.conf ... better solution still in the works.
+ - another residual path to make.conf ... better solution still in the
+   works.
 
+ [Dependencies::Added / runtime requires]
+ - Moo
+ - Role::Tiny
+ - Role::Tiny::With
+ - Tie::Hash::Method
 
 0.2.12 2013-07-24T06:23:39Z
  [Bugfix]

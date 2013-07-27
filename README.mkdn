@@ -4,7 +4,7 @@ PortageXS - Portage abstraction layer for perl
 
 # VERSION
 
-version 0.2.13
+version 0.3.0
 
 # NAMING
 
