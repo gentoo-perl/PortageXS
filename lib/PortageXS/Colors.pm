@@ -6,7 +6,6 @@ package PortageXS::Colors;
 
 # ABSTRACT: Colour formatting / translation for Gentoo
 
-use Path::Tiny;
 use Moo;
 
 my %colors;
