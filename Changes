@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.3.1 2013-07-27T08:58:15Z
  [00 MAJOR Changes]
  - Guts overhaulled so everywhere file IO was done directly, or via
    PortageXS::Core::getFileContents, it is instead now done by Path::Tiny.
