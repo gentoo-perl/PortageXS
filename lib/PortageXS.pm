@@ -32,6 +32,17 @@ with 'PortageXS::Useflags';
 
 use PortageXS::Version;
 
+sub portdir {
+	my $self	= shift;
+    return path($self->{portdir}) if defined $self->{portdir};
+    $self->{portdir} = $self->config->getParam('PORTDIR','lastseen');
+    return path($self->{portdir}) if $self->{portdir};
+    my $debug = "";
+    for my $file ( @{ $self->config->files }) {
+        $debug .= sprintf qq[ * %s : %s \n], $file, ( -e $file ? 'ok' : 'missing' );
+    }
+    die "Could not determine PORTDIR from make.conf family: " . $debug;
+}
 sub config {
     my $self = shift;
     return $self->{config} if defined $self->{config};
@@ -62,7 +73,8 @@ sub new {
 	my $pxs = bless {}, $self;
     require Tie::Hash::Method;
     my %blacklist = (
-        'COLORS' => 'please use pxs->colors ( PortageXS::Colors )'
+        'COLORS' => 'please use pxs->colors ( PortageXS::Colors )',
+        'PORTDIR' => 'please use pxs->portdir'
     );
     tie %{$pxs}, 'Tie::Hash::Method' => (
         FETCH => sub {
@@ -136,8 +148,6 @@ sub new {
 	if ( not defined $pxs->{'MAKE_GLOBALS_PATH'} ) {
 		die "Error, none of paths for `make.globals` exists." . join q{, }, @{ $pxs->{'MAKE_GLOBALS_PATHS'} };
 	}
-
-	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
 
 	return $pxs;
 }

@@ -142,18 +142,7 @@ sub getPortageMakeParam {
 # Example:
 # $portdir=$pxs->getPortdir([$forcereload]);
 sub getPortdir {
-	my $self	= shift;
-	my $forcereload	= shift;
-
-	if ($self->{'PORTDIR'} && !$forcereload) {
-		return $self->{'PORTDIR'};
-	}
-	else {
-		my $content = $self->{'MAKE_GLOBALS_PATH'}->slurp;
-		$content .=  $self->{'MAKE_CONF_PATH'}->slurp;
-		$self->{'PORTDIR'}=$self->getParamFromFile($content,'PORTDIR','lastseen');
-		return $self->{'PORTDIR'};
-	}
+    die "please use pxs->portdir";
 }
 
 # Description:
@@ -337,7 +326,7 @@ sub searchPackage {
 	my @matches		= ();
 
 	if (!$mode) { $mode='like'; }
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	if ($mode eq 'like') {
@@ -466,7 +455,7 @@ sub getAvailableEbuilds {
 	my $repo	= shift;
 	my @packagelist	= ();
 
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	my $repo_path = path($repo);
@@ -514,7 +503,7 @@ sub getBestEbuildVersion {
 # @listOfArches=$pxs->getAvailableArches();
 sub getAvailableArches {
 	my $self	= shift;
-	return path($self->{'PORTDIR'} )->child('profiles','arch.list')->lines({ chomp => 1 });
+	return $self->portdir->child('profiles','arch.list')->lines({ chomp => 1 });
 }
 
 # Description:
@@ -539,7 +528,7 @@ sub getPackagesFromCategory {
 	my @packages	= ();
 
 	return () if !$category;
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo= $self->portdir if (!$repo);
 
 	my $repo_path = path($repo);
 	my $category_path = $repo_path->child( $category );
@@ -668,7 +657,7 @@ sub getReponame {
 sub resolveMirror {
 	my $self	= shift;
 	my $mirror	= shift;
-	my $mirrorlist	= path($self->{PORTDIR})->child('profiles/thirdpartymirrors');
+	my $mirrorlist	= $self->portdir->child('profiles/thirdpartymirrors');
 
 	foreach my $q_mirror ($mirrorlist->lines({ chomp => 1 })) {
 		my @p=split(/\t/,$q_mirror);
@@ -788,10 +777,6 @@ sub removePackageFromWorld {
 sub resetCaches {
 	my $self	= shift;
 
-	# - Core >
-	$self->{'PORTDIR'}=undef;
-	$self->{'PORTDIR'}=$self->getPortdir();
-
 	# - Console >
 
 	# - System - getHomedir >
@@ -831,7 +816,7 @@ sub searchPackageByMaintainer {
 	my @fields		= ();
 
 	#if (!$mode) { $mode='like'; }
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	# - read categories >
@@ -869,7 +854,7 @@ sub searchPackageByHerd {
 	my @fields		= ();
 
 	#if (!$mode) { $mode='like'; }
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	# - read categories >

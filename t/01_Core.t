@@ -8,7 +8,7 @@ my $pxs = PortageXS->new();
 ok(defined $pxs,'check if PortageXS->new() works');
 
 # - getPortDir >
-ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
+ok(-d $pxs->portdir(),'portdir: '.$pxs->portdir());
 
 # - getFileContents >
 {
@@ -90,8 +90,8 @@ ok(!$pxs->fileBelongsToPackage('/this/path/most/likely/does/not/exist'),'fileBel
 
 # - getReponame >
 {
-	my $repo_name = $pxs->getReponame($pxs->getPortdir());
-	ok($repo_name,'Reponame of '.$pxs->getPortdir().' is: '.$repo_name);
+	my $repo_name = $pxs->getReponame($pxs->portdir . '');
+	ok($repo_name,'Reponame of '.$pxs->portdir().' is: '.$repo_name);
 }
 
 # - resolveMirror >
@@ -108,7 +108,7 @@ ok(!$pxs->fileBelongsToPackage('/this/path/most/likely/does/not/exist'),'fileBel
 
 # - getCategories >
 {
-	my @cats = $pxs->getCategories($pxs->getPortdir());
+	my @cats = $pxs->getCategories($pxs->portdir());
 	ok(($#cats+1),'Categories found: '.($#cats+1));
 }
 

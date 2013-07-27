@@ -165,7 +165,7 @@ sub getUsemasksFromProfile {
 
 		my @lines;
 
-		push @lines, path($self->{'PORTDIR'})->child('profiles/base/use.mask')->lines({ chomp => 1 });
+		push @lines, $self->portdir->child('profiles/base/use.mask')->lines({ chomp => 1 });
 		for my $file (reverse(@files)) {
 			push @lines, path($file)->lines({ chomp => 1 });
 		}
