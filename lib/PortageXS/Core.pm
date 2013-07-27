@@ -236,14 +236,23 @@ sub searchInstalledPackage {
 sub _foreach_category {
 	my ( $self, $repo , $callback ) = @_;
 	return () unless -d $repo;
-	my $dhc = path($repo)->iterator;
-	while(defined(my $tc = $dhc->()) ){
-		next if $self->{'EXCLUDE_DIRS'}{$tc->basename};
+	for my $category ($self->getCategories($repo)) {
+        my $path =    $repo . '/' . $category;
+        if ( not -e $path ){
+            die "Category $path expected, but does not exist";
+        }
+        if ( not -d $path ){
+            die "Category $path exists, but is not a dir";
+        }
+        if ( not -r $path ){
+            warn "Category $path exists, but not readable, skipping";
+            next;
+        }
 		local $_ = {
-			category => $tc->basename,
-			path     => $tc
+			category => $category,
+			path     => $path
 		};
-		my $result = $callback->();
+   		my $result = $callback->();
 		return if defined $result and $result eq 'BAIL';
 	}
 }
@@ -273,8 +282,6 @@ sub _searchPackage_like {
 	my @matches;
 	# - read categories >
 	$self->_foreach_category( $repo => sub {
-		return unless -d $_->{path};
-		return unless -r $_->{path};
 		$self->_foreach_package( $repo =>  $_->{category} => sub {
 			return unless $_->{package} =~ m/$searchString/i;
 			return unless -d $_->{path};
@@ -290,8 +297,6 @@ sub _searchPackage_exact {
 	my @matches;
 	# - read categories >
 	$self->_foreach_category( $repo => sub {
-		return unless -d $_->{path};
-		return unless -r $_->{path};
 		$self->_foreach_package( $repo =>  $_->{category} => sub {
 			return unless $_->{package} eq $searchString;
 			return unless -d $_->{path};
@@ -679,8 +684,19 @@ sub getCategories {
 	if (-e $categoryfile) {
 		return $categoryfile->lines({ chomp => 1 });
 	}
+    my %not_a_category = (
+        'packages','distfiles','profiles','eclass','licenses','metadata','scripts'
+    );
 
-	return ();
+    my @categories;
+    my $it = path($repo)->iterator;
+	while(defined(my $tc = $it->()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tc->basename};
+        next if exists $not_a_category{$tc->basename};
+        next if not -d $tc;
+        push @categories, $tc->basename;
+    }
+	return (@categories);
 }
 
 # Description:
