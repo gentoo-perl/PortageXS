@@ -13,7 +13,7 @@ if ( not $ARGV[0] ) {
     die "Specify a herd to search for packages";
 }
 
-push(@repos,$pxs->getPortdir());
+push(@repos,$pxs->portdir());
 push(@repos,$pxs->getPortdirOverlay());
 
 foreach (@repos) {
