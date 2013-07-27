@@ -164,10 +164,7 @@ sub getPortdirOverlay {
 # Returnvalue is the content of the given file.
 # $filecontent=$pxs->getFileContents($file);
 sub getFileContents {
-	my $self = shift;
-    warn 'getFileContents is deprecated, use Path::Tiny->slurp';
-	my $file = shift;
-    return path($file)->slurp;
+    die 'getFileContents(foo) is deprecated, use Path::Tiny; path(foo)->slurp';
 }
 
 # Description:
