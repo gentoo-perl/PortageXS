@@ -21,41 +21,15 @@ package PortageXS;
 #
 # -----------------------------------------------------------------------------
 
-use PortageXS::Core;
-use PortageXS::System;
+use Role::Tiny::With;
+
+
+with 'PortageXS::Core';
+with 'PortageXS::System';
+with 'PortageXS::UI::Console';
+with 'PortageXS::Useflags';
+
 use PortageXS::Version;
-use PortageXS::UI::Console;
-use PortageXS::Useflags;
-use Term::ANSIColor;
-
-require Exporter;
-
-our @ISA = qw(Exporter);
-our @EXPORT = qw(
-			getArch
-			getPortdir
-			getPortdirOverlay
-			getFileContents
-			searchInstalledPackage
-			getParamFromFile
-			getUseSettingsOfInstalledPackage
-			printColored
-			print_ok
-			print_err
-			print_info
-			getPortageXScategorylist
-			getAvailableEbuilds
-			getBestEbuildVersion
-			cmdExecute
-			getAvailableArches
-			getPackagesFromCategory
-			fileBelongsToPackage
-			getFilesOfInstalledPackage
-			cmdAskUser
-			getHomedir
-			getEbuildVersion
-			getEbuildName
-		);
 
 sub colors {
     my $self = shift;
