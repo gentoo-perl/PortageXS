@@ -168,12 +168,7 @@ sub getPortdirOverlay {
 	my $self	= shift;
 	my $forcereload	= shift;
 
-	my $content = '';
-
-	$content .=  path($self->{MAKE_GLOBALS_PATH})->slurp;
-	$content .=  path($self->{MAKE_CONF_PATH})->slurp;
-
-	return split(/ /, $self->getParamFromFile($content,'PORTDIR_OVERLAY','lastseen'));
+    return split(/ /, $self->config->getParam('PORTDIR_OVERLAY', 'lastseen'));
 }
 
 # Description:

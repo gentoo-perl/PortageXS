@@ -32,15 +32,22 @@ with 'PortageXS::Useflags';
 
 use PortageXS::Version;
 
+sub config {
+    my $self = shift;
+    return $self->{config} if defined $self->{config};
+    return $self->{config} = do {
+        require PortageXS::MakeConf;
+        return PortageXS::MakeConf->new();
+    };
+}
+
 sub colors {
     my $self = shift;
     return $self->{colors} if defined $self->{colors};
     return $self->{colors} = do {
         require PortageXS::Colors;
         my $colors   = PortageXS::Colors->new();
-        my $makeconf = path( $self->{'MAKE_CONF_PATH'} )->slurp();
-        my $want_nocolor =
-          lc( $self->getParamFromFile( $makeconf, 'NOCOLOR', 'lastseen' ) );
+        my $want_nocolor = $self->config->getParam('NOCOLOR', 'lastseen' );
 
         if ( $want_nocolor eq 'true' ) {
             $colors->disableColors;

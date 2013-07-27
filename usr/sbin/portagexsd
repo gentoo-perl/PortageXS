@@ -50,14 +50,15 @@ else {
 sub main {
 	# - Parse config >
 	my %config	= ();
-	$config{'cfgfiledata'} = $pxs->{PORTAGEXS_ETC_DIR}->child('portagexsd.conf')->slurp;
-	$config{'Port'} = $pxs->getParamFromFile($config{'cfgfiledata'},"Port","lastseen");
-	$config{'SSLpasswd'} = $pxs->getParamFromFile($config{'cfgfiledata'},"SSLpasswd","lastseen");
-	$config{'PidFile'} = $pxs->getParamFromFile($config{'cfgfiledata'},"PidFile","lastseen");
-	$config{'Query'} = $pxs->getParamFromFile($config{'cfgfiledata'},"Query","lastseen");
-	$config{'Alter'} = $pxs->getParamFromFile($config{'cfgfiledata'},"Alter","lastseen");
-	$config{'I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING'} = $pxs->getParamFromFile($config{'cfgfiledata'},"I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING","lastseen");
-	$config{'cfgfiledata'} = undef;
+    use PortageXS::MakeConf;
+    my $conf_data = PortageXS::MakeConf->new( files => [ $pxs->{PORTAGEXS_ETC_DIR}->child('portagexsd.conf') ] );
+
+	$config{'Port'} = $conf_data->getParam("Port","lastseen");
+	$config{'SSLpasswd'} = $conf_data->getParam("SSLpasswd","lastseen");
+	$config{'PidFile'} = $conf_data->getParam("PidFile","lastseen");
+	$config{'Query'} = $conf_data->getParam("Query","lastseen");
+	$config{'Alter'} = $conf_data->getParam("Alter","lastseen");
+	$config{'I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING'} = $conf_data->getParam("I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING","lastseen");
 
 	if (!$config{'I_AM_ROOT_AND_I_KNOW_WHAT_I_AM_DOING'}) {
 		syslog("info", 'Not starting server as it seems that you did not have a look at the configs yet! (/etc/pxs/portagexsd.conf)');
