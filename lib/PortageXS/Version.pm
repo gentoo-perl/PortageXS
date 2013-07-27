@@ -3,13 +3,14 @@ BEGIN {
   $PortageXS::Version::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Version::VERSION = '0.3.0';
+  $PortageXS::Version::VERSION = '0.3.1';
 }
 
 # ABSTRACT: Gentoo version object
 
 use strict;
 use warnings;
+
 
 
 use Scalar::Util ();
@@ -183,13 +184,23 @@ PortageXS::Version - Gentoo version object
 
 =head1 VERSION
 
-version 0.3.0
+version 0.3.1
 
 =head1 DESCRIPTION
 
 This class models Gentoo versions as described in L<http://devmanual.gentoo.org/ebuild-writing/file-format/index.html>.
 
 This specific class is a deviation of L<CPANPLUS::Dist::Gentoo::Version>
+
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Version",
+    "interface":"class"
+}
+
+
+=end MetaPOD::JSON
 
 =head1 METHODS
 

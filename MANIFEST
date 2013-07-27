@@ -46,12 +46,17 @@ examples/searchPackage.pl
 examples/searchPackageByHerd.pl
 examples/searchPackageByMaintainer.pl
 examples/spinner.pl
+examples/spinner_rainbow.pl
+layout/self_structure.dot
+layout/self_structure.png
 lib/PortageXS.pm
 lib/PortageXS/Colors.pm
 lib/PortageXS/Core.pm
+lib/PortageXS/MakeConf.pm
 lib/PortageXS/System.pm
 lib/PortageXS/UI/Console.pm
 lib/PortageXS/UI/Spinner.pm
+lib/PortageXS/UI/Spinner/Rainbow.pm
 lib/PortageXS/Useflags.pm
 lib/PortageXS/Version.pm
 t/00-compile.t

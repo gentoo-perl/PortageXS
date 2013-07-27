@@ -2,19 +2,17 @@
 
 use Test::Simple tests => 32;
 
-use lib '../lib/';
-use lib 'lib/';
 use PortageXS;
-
+use Path::Tiny qw(path);
 my $pxs = PortageXS->new();
 ok(defined $pxs,'check if PortageXS->new() works');
 
 # - getPortDir >
-ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
+ok(-d $pxs->portdir(),'portdir: '.$pxs->portdir());
 
 # - getFileContents >
 {
-	my $content = $pxs->getFileContents('/etc/portage/make.conf');
+	my $content = path('/etc/portage/make.conf')->slurp();
 	ok($content ne '','getFileContents of /etc/portage/make.conf');
 }
 
@@ -26,7 +24,7 @@ ok(-d $pxs->getPortdir(),'getPortdir: '.$pxs->getPortdir());
 
 # - getParamFromFile >
 {
-	my $param = $pxs->getParamFromFile($pxs->getFileContents('/etc/portage/make.conf'),'CFLAGS','lastseen');
+	my $param = $pxs->config->getParam('CFLAGS','lastseen');
 	ok($param ne '','getParamFromFile /etc/portage/make.conf - CFLAGS: '.$param);
 }
 
@@ -92,8 +90,8 @@ ok(!$pxs->fileBelongsToPackage('/this/path/most/likely/does/not/exist'),'fileBel
 
 # - getReponame >
 {
-	my $repo_name = $pxs->getReponame($pxs->getPortdir());
-	ok($repo_name,'Reponame of '.$pxs->getPortdir().' is: '.$repo_name);
+	my $repo_name = $pxs->getReponame($pxs->portdir . '');
+	ok($repo_name,'Reponame of '.$pxs->portdir().' is: '.$repo_name);
 }
 
 # - resolveMirror >
@@ -110,7 +108,7 @@ ok(!$pxs->fileBelongsToPackage('/this/path/most/likely/does/not/exist'),'fileBel
 
 # - getCategories >
 {
-	my @cats = $pxs->getCategories($pxs->getPortdir());
+	my @cats = $pxs->getCategories($pxs->portdir());
 	ok(($#cats+1),'Categories found: '.($#cats+1));
 }
 

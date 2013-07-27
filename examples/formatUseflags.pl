@@ -11,6 +11,10 @@ my $pxs=PortageXS->new();
 my $package     = "perl";
 $package = $ARGV[0] if $ARGV[0];
 ($package)=$pxs->searchPackage($package,'exact');
+if ( not $package ) {
+    die "No package found";
+}
+
 
 print "Package ".$package." has been compiled with useflags set: ";
 print join(" ",$pxs->formatUseflags($pxs->getUseSettingsOfInstalledPackage($pxs->searchInstalledPackage($package))))."\n";

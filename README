@@ -2,7 +2,7 @@ NAME
     PortageXS - Portage abstraction layer for perl
 
 VERSION
-    version 0.3.0
+    version 0.3.1
 
 NAMING
     For CPAN users, the name of this module is likely confusing, and
@@ -23,6 +23,22 @@ NAMING
 
     As such, my preferred name would be "Gentoo::Portage::API", or something
     like that, but we're stuck for now.
+
+SIGNIFICANT CHANGES
+  0.3.0 Series
+   0.3.0
+   Slurping Overhaul
+    This module contains a lot of file slurping magic, in a few various
+    forms, as well as path mangling and similar things.
+
+    This release is a huge overhaul of how that works, and sufficiently more
+    dependence is now placed on "Path::Tiny"'s head.
+
+    "getFileContents" is now deprecated, and will warn when called.
+
+    However, the nature of this change is likely introduce a few bugs in
+    places I may not have transformed the code properly, which may not be
+    immediately obvservable.
 
 CHOPPING BLOCK
     I've inherited this module from Gentoo Staff, who are now more-or-less
