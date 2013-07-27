@@ -57,6 +57,23 @@ our @EXPORT = qw(
 			getEbuildName
 		);
 
+sub colors {
+    my $self = shift;
+    return $self->{colors} if defined $self->{colors};
+    return $self->{colors} = do {
+        require PortageXS::Colors;
+        my $colors   = PortageXS::Colors->new();
+        my $makeconf = $self->getFileContents( $self->{'MAKE_CONF_PATH'} );
+        my $want_nocolor =
+          lc( $self->getParamFromFile( $makeconf, 'NOCOLOR', 'lastseen' ) );
+
+        if ( $want_nocolor eq 'true' ) {
+            $colors->disableColors;
+        }
+        $colors;
+    };
+}
+
 sub new {
 	my $self	= shift ;
 
@@ -106,30 +123,6 @@ sub new {
 	if ( not defined $pxs->{'MAKE_CONF_PATH'} ) {
 		die "Error, none of paths for `make.conf` exists." . join q{, }, @{ $pxs->{'MAKE_CONF_PATHS'} };
 	}
-	# - init colors >
-	$pxs->{'COLORS'}{'YELLOW'}		= color('bold yellow');
-	$pxs->{'COLORS'}{'GREEN'}		= color('green');
-	$pxs->{'COLORS'}{'LIGHTGREEN'}		= color('bold green');
-	$pxs->{'COLORS'}{'WHITE'}		= color('bold white');
-	$pxs->{'COLORS'}{'CYAN'}		= color('bold cyan');
-	$pxs->{'COLORS'}{'RED'}			= color('bold red');
-	$pxs->{'COLORS'}{'BLUE'}		= color('bold blue');
-	$pxs->{'COLORS'}{'RESET'}		= color('reset');
-
-	my $makeconf = $pxs->getFileContents($pxs->{'MAKE_CONF_PATH'});
-	my $want_nocolor = lc($pxs->getParamFromFile($makeconf,'NOCOLOR','lastseen'));
-
-	if ($want_nocolor eq 'true') {
-		$pxs->{'COLORS'}{'YELLOW'}		= '';
-		$pxs->{'COLORS'}{'GREEN'}		= '';
-		$pxs->{'COLORS'}{'LIGHTGREEN'}		= '';
-		$pxs->{'COLORS'}{'WHITE'}		= '';
-		$pxs->{'COLORS'}{'CYAN'}		= '';
-		$pxs->{'COLORS'}{'RED'}			= '';
-		$pxs->{'COLORS'}{'BLUE'}		= '';
-		$pxs->{'COLORS'}{'RESET'}		= '';
-	}
-
 	return $pxs;
 }
 
