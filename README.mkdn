@@ -4,7 +4,20 @@ PortageXS - Portage abstraction layer for perl
 
 # VERSION
 
-version 0.3.0
+version 0.3.1
+
+{
+    "namespace":"PortageXS",
+    "interface":"class",
+    "does":\[
+        "PortageXS::Core",
+        "PortageXS::System",
+        "PortageXS::UI::Console",
+        "PortageXS::Useflags"
+    \]
+}
+
+
 
 # NAMING
 

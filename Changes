@@ -7,18 +7,26 @@ Revision history for {{$dist->name}}
  - DirHandle based traversal replaced by Path::Tiny iterate()
  - Many linewise readers replaced with shorter Path::Tiny->lines
  - BREAKAGES EXPECED
+ - Primary configuaration code now modularised to MakeConf, and everywhere
+   that used that 'getParamFromFile' previously is now proxied there via
+   pxs->config-getParam()
+ - getPortdir() is now deprecated in favour of the lowercase portdir, which
+   is an inroad to eventually one day using moo lazy accessors.
+ - more dependence on shared configuration for paths, but still warty
 
  [Dependencies::Added / develop requires]
  - Test::CPAN::Changes 0.19
 
  [Dependencies::Added / runtime requires]
+ - IO::Handle
  - Path::Tiny
 
  [Dependencies::Removed / runtime requires]
  - DirHandle
+ - Exporter
 
  [Documentation]
- - Changelog retroactively touched up to work better with CPAN::Changes
+ - Code now annotated with MetaPOD
 
  [Misc]
  - Examples moved to top level
