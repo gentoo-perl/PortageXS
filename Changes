@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.3.0 2013-07-27T06:13:05Z
  [00 Major Changes]
  - Color logic factored out into its own module
  - examples moved top level
