@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::Useflags::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Useflags::VERSION = '0.2.12';
+  $PortageXS::Useflags::VERSION = '0.3.0';
 }
 # ABSTRACT: Useflag parsing utilities role for PortageXS
 # -----------------------------------------------------------------------------
@@ -27,15 +27,7 @@ BEGIN {
 # -----------------------------------------------------------------------------
 
 use DirHandle;
-require Exporter;
-our @ISA = qw(Exporter PortageXS);
-our @EXPORT = qw(
-			getUsedesc
-			getUsedescs
-			sortUseflags
-			getUsemasksFromProfile
-			getUsemasksFromProfileHelper
-		);
+use Role::Tiny;
 
 # Description:
 # Returns useflag description of the given useflag and repository.
@@ -229,7 +221,7 @@ PortageXS::Useflags - Useflag parsing utilities role for PortageXS
 
 =head1 VERSION
 
-version 0.2.12
+version 0.3.0
 
 =head1 AUTHORS
 
