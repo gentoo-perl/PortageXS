@@ -3,7 +3,7 @@ BEGIN {
   $PortageXS::Version::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Version::VERSION = '0.2.12';
+  $PortageXS::Version::VERSION = '0.3.0';
 }
 
 # ABSTRACT: Gentoo version object
@@ -183,7 +183,7 @@ PortageXS::Version - Gentoo version object
 
 =head1 VERSION
 
-version 0.2.12
+version 0.3.0
 
 =head1 DESCRIPTION
 

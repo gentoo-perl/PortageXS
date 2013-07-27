@@ -2,7 +2,7 @@ NAME
     PortageXS - Portage abstraction layer for perl
 
 VERSION
-    version 0.2.12
+    version 0.3.0
 
 NAMING
     For CPAN users, the name of this module is likely confusing, and

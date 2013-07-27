@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::UI::Spinner::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::UI::Spinner::VERSION = '0.2.12';
+  $PortageXS::UI::Spinner::VERSION = '0.3.0';
 }
 # ABSTRACT: Dancing \|/- progress bling for consoles.
 # -----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ PortageXS::UI::Spinner - Dancing \|/- progress bling for consoles.
 
 =head1 VERSION
 
-version 0.2.12
+version 0.3.0
 
 =head1 AUTHORS
 
