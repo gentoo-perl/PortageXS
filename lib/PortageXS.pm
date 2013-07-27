@@ -52,7 +52,26 @@ sub new {
 	my $self	= shift ;
 
 	my $pxs = bless {}, $self;
-
+    require Tie::Hash::Method;
+    my %blacklist = (
+        'COLORS' => 'please use pxs->colors ( PortageXS::Colors )'
+    );
+    tie %{$pxs}, 'Tie::Hash::Method' => (
+        FETCH => sub {
+            my ( $self, $key ) = @_;
+            if ( exists $blacklist{ $_[1] } ) {
+                die "$_[1] is gone: " . $blacklist{ $_[1] };
+            }
+            $_[0]->base_hash->{ $_[1] };
+        },
+        STORE => sub {
+            my ( $self, $key, $value ) = @_;
+            if ( exists $blacklist{ $_[1] } ) {
+                die "$_[1] is gone: " . $blacklist{ $_[1] };
+            }
+            $_[0]->base_hash->{ $_[1] } = $_[2];
+        }
+    );
 	$pxs->{'VERSION'}			= $PortageXS::VERSION;
 
 	$pxs->{'PORTDIR'}			= $pxs->getPortdir();
