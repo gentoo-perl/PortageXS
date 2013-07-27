@@ -23,33 +23,39 @@ name: PortageXS
 provides:
   PortageXS:
     file: lib/PortageXS.pm
-    version: v0.3.0
+    version: v0.3.1
   PortageXS::Colors:
     file: lib/PortageXS/Colors.pm
-    version: v0.3.0
+    version: v0.3.1
   PortageXS::Core:
     file: lib/PortageXS/Core.pm
-    version: v0.3.0
+    version: v0.3.1
+  PortageXS::MakeConf:
+    file: lib/PortageXS/MakeConf.pm
+    version: v0.3.1
   PortageXS::System:
     file: lib/PortageXS/System.pm
-    version: v0.3.0
+    version: v0.3.1
   PortageXS::UI::Console:
     file: lib/PortageXS/UI/Console.pm
-    version: v0.3.0
+    version: v0.3.1
   PortageXS::UI::Spinner:
     file: lib/PortageXS/UI/Spinner.pm
-    version: v0.3.0
+    version: v0.3.1
+  PortageXS::UI::Spinner::Rainbow:
+    file: lib/PortageXS/UI/Spinner/Rainbow.pm
+    version: v0.3.1
   PortageXS::Useflags:
     file: lib/PortageXS/Useflags.pm
-    version: v0.3.0
+    version: v0.3.1
   PortageXS::Version:
     file: lib/PortageXS/Version.pm
-    version: v0.3.0
+    version: v0.3.1
 requires:
   Carp: 0
-  DirHandle: 0
-  Exporter: 0
+  IO::Handle: 0
   Moo: 1.000008
+  Path::Tiny: 0
   Role::Tiny: 0
   Role::Tiny::With: 0
   Scalar::Util: 0
@@ -64,18 +70,18 @@ resources:
   bugtracker: https://github.com/gentoo-perl/PortageXS/issues
   homepage: https://github.com/gentoo-perl/PortageXS
   repository: https://github.com/gentoo-perl/PortageXS.git
-version: 0.3.0
+version: 0.3.1
 x_BuiltWith:
   modules:
     Carp: 1.29
-    DirHandle: 1.04
     Dist::Zilla::PluginBundle::Author::KENTNL: 1.7.4
     Dist::Zilla::PluginBundle::Author::KENTNL::Lite: 'NA(possibly not installed)'
-    Exporter: 5.68
     File::Find: 1.23
     File::Temp: 0.2301
+    IO::Handle: 1.34
     Module::Build: 0.4005
     Moo: 1.002
+    Path::Tiny: 0.024
     Role::Tiny: 1.002005
     Role::Tiny::With: NA(undef)
     Scalar::Util: 1.27

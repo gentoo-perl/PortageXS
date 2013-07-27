@@ -17,7 +17,7 @@ if (($pxs->searchInstalledPackage($package))[0]) {
 		if (substr($thisUSE,0,1) eq '-') {
 			$thisUSE=substr($thisUSE,1,length($thisUSE)-1);
 		}
-		my $thisUSEDESC=($pxs->getUsedescs($thisUSE,$pxs->getPortdir(),$package))[0];
+		my $thisUSEDESC=($pxs->getUsedescs($thisUSE,$pxs->portdir(),$package))[0];
 
 		print $thisUSE." --> ";
 		if ($thisUSEDESC) {

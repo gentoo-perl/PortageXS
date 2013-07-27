@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::Useflags::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Useflags::VERSION = '0.3.0';
+  $PortageXS::Useflags::VERSION = '0.3.1';
 }
 # ABSTRACT: Useflag parsing utilities role for PortageXS
 # -----------------------------------------------------------------------------
@@ -26,8 +26,9 @@ BEGIN {
 #
 # -----------------------------------------------------------------------------
 
-use DirHandle;
+use Path::Tiny qw(path);
 use Role::Tiny;
+
 
 # Description:
 # Returns useflag description of the given useflag and repository.
@@ -55,11 +56,14 @@ sub getUsedescs {
 	my @p		= ();
 	my @descs	= ();
 
-	if (-e $repo.'/profiles/use.desc') {
+	my $usedesc = path($repo)->child('profiles/use.desc' );
+	my $uselocaldesc = path($repo)->child('profiles/use.local.desc' );
+
+	if (-e $usedesc ) {
 		if (!$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.desc'}{'initialized'}) {
-			foreach (split(/\n/,$self->getFileContents($repo.'/profiles/use.desc'))) {
-				if ($_) {
-					@p=split(/ - /,$_);
+			foreach my $desc ($usedesc->lines({ chomp => 1 })) {
+				if ($desc) {
+					@p=split(/ - /,$desc);
 					$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.desc'}{'use'}{$p[0]}=$p[1];
 				}
 			}
@@ -72,9 +76,9 @@ sub getUsedescs {
 	}
 
 	if ($package) {
-		if (-e $repo.'/profiles/use.local.desc') {
+		if (-e $uselocaldesc) {
 			if (!$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'}) {
-				$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'}=$self->getFileContents($repo.'/profiles/use.local.desc');
+				$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'}=$uselocaldesc->slurp();
 			}
 
 			foreach (split(/\n/,$self->{'CACHE'}{'Useflags'}{'getUsedescs'}{$repo}{'use.local.desc'})) {
@@ -118,17 +122,16 @@ sub getUsemasksFromProfileHelper {
 	my @files	= ();
 	my $parent	= '';
 
-	if (-e $curPath.'/use.mask') {
-		push(@files,$curPath.'/use.mask');
+
+	if (-e ( my $file = path($curPath)->child('use.mask')) ) {
+		push(@files,$file);
 	}
-	if (! -e $curPath.'/parent') {
+	if (! -e path($curPath)->child('parent')) {
 		return @files;
 	}
-	$parent=$self->getFileContents($curPath.'/parent');
-	foreach (split(/\n/,$parent)) {
-		push(@files,$self->getUsemasksFromProfileHelper($curPath.'/'.$_));
+	for my $parent ( path($curPath)->child('parent')->lines({chomp => 1}) ){
+		push(@files,$self->getUsemasksFromProfileHelper($parent));
 	}
-
 	return @files;
 }
 
@@ -142,8 +145,6 @@ sub getUsemasksFromProfile {
 	my $curPath	= '';
 	my @files	= ();
 	my $parent	= '';
-	my $buffer	= '';
-	my @lines	= ();
 	my $c		= 0;
 	my %maskedUses	= ();
 	my @useflags	= ();
@@ -169,13 +170,13 @@ sub getUsemasksFromProfile {
 # 		}
 		@files = $self->getUsemasksFromProfileHelper($curPath);
 
-		$buffer.=$self->getFileContents($self->{'PORTDIR'}.'/profiles/base/use.mask')."\n";
-		foreach(reverse(@files)) {
-			$buffer.=$self->getFileContents($_)."\n";
+		my @lines;
+
+		push @lines, $self->portdir->child('profiles/base/use.mask')->lines({ chomp => 1 });
+		for my $file (reverse(@files)) {
+			push @lines, path($file)->lines({ chomp => 1 });
 		}
 
-		# - split file in lines >
-		@lines = split(/\n/,$buffer);
 
 		for($c=0;$c<=$#lines;$c++) {
 			next if $lines[$c]=~m/^#/;
@@ -221,7 +222,17 @@ PortageXS::Useflags - Useflag parsing utilities role for PortageXS
 
 =head1 VERSION
 
-version 0.3.0
+version 0.3.1
+
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Useflags",
+    "interface":"role"
+}
+
+
+=end MetaPOD::JSON
 
 =head1 AUTHORS
 

@@ -7,12 +7,13 @@ BEGIN {
   $PortageXS::Colors::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Colors::VERSION = '0.3.0';
+  $PortageXS::Colors::VERSION = '0.3.1';
 }
 
 # ABSTRACT: Colour formatting / translation for Gentoo
 
 use Moo 1.000008;
+
 
 my %colors;
 
@@ -176,7 +177,7 @@ PortageXS::Colors - Colour formatting / translation for Gentoo
 
 =head1 VERSION
 
-version 0.3.0
+version 0.3.1
 
 =head1 METHODS
 
@@ -294,6 +295,17 @@ Its C<printTaskColored>, but shorter and 'info' is implied
 =head2 task_color_err
 
 =head2 task_color_info
+
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Colors",
+    "interface":"class",
+    "inherits":"Moo::Object"
+}
+
+
+=end MetaPOD::JSON
 
 =head1 AUTHORS
 

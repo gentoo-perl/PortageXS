@@ -6,7 +6,7 @@ BEGIN {
   $PortageXS::Core::AUTHORITY = 'cpan:KENTNL';
 }
 {
-  $PortageXS::Core::VERSION = '0.3.0';
+  $PortageXS::Core::VERSION = '0.3.1';
 }
 
 # ABSTRACT: Core behaviour role for C<PortageXS>
@@ -28,9 +28,10 @@ BEGIN {
 #
 # -----------------------------------------------------------------------------
 
-use DirHandle;
+use Path::Tiny qw(path);
 use Shell::EnvImporter;
 use Role::Tiny;
+
 
 # Description:
 # Returnvalue is ARCH set in the system-profile.
@@ -52,10 +53,10 @@ sub getProfileTree {
 	my $curPath	= shift;
 	my @path;
 
-	if ( -e "$curPath/parent" ) {
-		my $parent=$self->getFileContents("$curPath/parent");
-		foreach (split /\n/, $parent) {
-			push @path, $self->getProfileTree("$curPath/$_");
+	my $parent = path("$curPath/parent");
+	if ( -e $parent ) {
+		foreach my $line ($parent->lines({ chomp => 1 })) {
+			push @path, $self->getProfileTree("$curPath/$line");
 		}
 	}
 	push @path, $curPath;
@@ -84,7 +85,7 @@ sub getPortageMakeParam {
 	my $self		= shift;
 	my $param		= shift;
 	my @files		= ();
-	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/portage/make.conf);
+	my @etcfiles	= ( $self->{'MAKE_GLOBALS_PATH'}, $self->{'MAKE_CONF_PATH'}) ;
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
@@ -128,7 +129,7 @@ sub getPortageMakeParam {
 
 	# - Defaults >
 	if ($param eq 'PORTDIR' && !$v) {
-		$v='/usr/portage';
+		$v= $self->{PREFIX}->child('usr/portage');
 	}
 
 	return $v;
@@ -148,16 +149,7 @@ sub getPortageMakeParam {
 # Example:
 # $portdir=$pxs->getPortdir([$forcereload]);
 sub getPortdir {
-	my $self	= shift;
-	my $forcereload	= shift;
-
-	if ($self->{'PORTDIR'} && !$forcereload) {
-		return $self->{'PORTDIR'};
-	}
-	else {
-		$self->{'PORTDIR'}=$self->getParamFromFile($self->getFileContents('/usr/share/portage/config/make.globals').$self->getFileContents('/etc/portage/make.conf'),'PORTDIR','lastseen');
-		return $self->{'PORTDIR'};
-	}
+    die "please use pxs->portdir";
 }
 
 # Description:
@@ -172,21 +164,14 @@ sub getPortdirOverlay {
 	my $self	= shift;
 	my $forcereload	= shift;
 
-	return split(/ /,$self->getParamFromFile($self->getFileContents('/usr/share/portage/config/make.globals').$self->getFileContents('/etc/make.conf'),'PORTDIR_OVERLAY','lastseen'));
+    return split(/ /, $self->config->getParam('PORTDIR_OVERLAY', 'lastseen'));
 }
 
 # Description:
 # Returnvalue is the content of the given file.
 # $filecontent=$pxs->getFileContents($file);
 sub getFileContents {
-	my $self = shift;
-	my $file = shift;
-	my $content = do {
-		local $/;
-		open my $fh, '<', $file or die "Cannot open file $file";
-		<$fh>;
-	};
-	return $content;
+    die 'getFileContents(foo) is deprecated, use Path::Tiny; path(foo)->slurp';
 }
 
 # Description:
@@ -199,10 +184,6 @@ sub searchInstalledPackage {
 	my $s_cat		= '';
 	my $s_pak		= '';
 	my $m_cat		= 0;
-	my $dhc;
-	my $dhp;
-	my $tc;
-	my $tp;
 
 	# - escape special chars >
 	$searchString =~ s/\+/\\\+/g;
@@ -219,12 +200,12 @@ sub searchInstalledPackage {
 	$s_pak=~s/\*//g;
 
 	# - read categories >
-	$dhc = new DirHandle($self->{'PKG_DB_DIR'});
+	my $dhc = path($self->{'PKG_DB_DIR'})->iterator;
 	if (defined $dhc) {
-		while (defined($tc = $dhc->read)) {
+		while (defined(my $tc = $dhc->())) {
 			$m_cat=0;
 			if ($s_cat ne '') {
-				if ($tc=~m/$s_cat/i) {
+				if ($tc->basename=~m/$s_cat/i) {
 					$m_cat=1;
 				}
 				else {
@@ -233,19 +214,19 @@ sub searchInstalledPackage {
 			}
 
 			# - not excluded and $_ is a dir?
-			if (! $self->{'EXCLUDE_DIRS'}{$tc} && -d $self->{'PKG_DB_DIR'}.'/'.$tc) {
-				$dhp = new DirHandle($self->{'PKG_DB_DIR'}.'/'.$tc);
-				while (defined($tp = $dhp->read)) {
+			if (! $self->{'EXCLUDE_DIRS'}{$tc->basename} && -d $tc) {
+				my $dhp = $tc->iterator;
+				while (defined(my $tp = $dhp->())) {
 					# - check if packagename matches
 					#   (faster if we already check it now) >
-					if ($tp =~m/$s_pak/i || $s_pak eq '') {
+					if ($tp->basename =~m/$s_pak/i || $s_pak eq '') {
 						# - not excluded and $_ is a dir?
-						if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp) {
+						if (! $self->{'EXCLUDE_DIRS'}{$tp->basename} && -d $tp) {
 							if (($s_cat ne '') && ($m_cat)) {
-								push(@matches,$tc.'/'.$tp);
+								push(@matches,$tc->basename.'/'.$tp->basename);
 							}
 							elsif ($s_cat eq '') {
-								push(@matches,$tc.'/'.$tp);
+								push(@matches,$tc->basename.'/'.$tp->basename);
 							}
 						}
 					}
@@ -262,14 +243,23 @@ sub searchInstalledPackage {
 sub _foreach_category {
 	my ( $self, $repo , $callback ) = @_;
 	return () unless -d $repo;
-	my $dhc = DirHandle->new($repo);
-	while(defined(my $tc = $dhc->read()) ){
-		next if $self->{'EXCLUDE_DIRS'}{$tc};
+	for my $category ($self->getCategories($repo)) {
+        my $path =    $repo . '/' . $category;
+        if ( not -e $path ){
+            die "Category $path expected, but does not exist";
+        }
+        if ( not -d $path ){
+            die "Category $path exists, but is not a dir";
+        }
+        if ( not -r $path ){
+            warn "Category $path exists, but not readable, skipping";
+            next;
+        }
 		local $_ = {
-			category => $tc,
-			path     => $repo . '/' . $tc
+			category => $category,
+			path     => $path
 		};
-		my $result = $callback->();
+   		my $result = $callback->();
 		return if defined $result and $result eq 'BAIL';
 	}
 }
@@ -279,13 +269,13 @@ sub _foreach_package {
 	my $category_path = $repo . '/' . $category;
 	return () unless -d $category_path;
 	return () unless -r $category_path;
-	my $dhc = DirHandle->new( $category_path );
-	while(defined(my $tp = $dhc->read()) ){
-		next if $self->{'EXCLUDE_DIRS'}{$tp};
+	my $dhc = path( $category_path )->iterator;
+	while(defined(my $tp = $dhc->()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tp->basename};
 		local $_ = {
 			category => $category,
-			package  => $tp,
-			path     => $repo . '/' . $category . '/' . $tp
+			package  => $tp->basename,
+			path     => $tp
 		};
 		my $result = $callback->();
 		return if defined $result and $result eq 'BAIL';
@@ -299,8 +289,6 @@ sub _searchPackage_like {
 	my @matches;
 	# - read categories >
 	$self->_foreach_category( $repo => sub {
-		return unless -d $_->{path};
-		return unless -r $_->{path};
 		$self->_foreach_package( $repo =>  $_->{category} => sub {
 			return unless $_->{package} =~ m/$searchString/i;
 			return unless -d $_->{path};
@@ -316,8 +304,6 @@ sub _searchPackage_exact {
 	my @matches;
 	# - read categories >
 	$self->_foreach_category( $repo => sub {
-		return unless -d $_->{path};
-		return unless -r $_->{path};
 		$self->_foreach_package( $repo =>  $_->{category} => sub {
 			return unless $_->{package} eq $searchString;
 			return unless -d $_->{path};
@@ -349,7 +335,7 @@ sub searchPackage {
 	my @matches		= ();
 
 	if (!$mode) { $mode='like'; }
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	if ($mode eq 'like') {
@@ -441,13 +427,16 @@ sub getUseSettingsOfInstalledPackage {
 	my @USEs		= ();
 	my $hasuse		= '';
 
-	if (-e $self->{'PKG_DB_DIR'}.'/'.$package.'/IUSE') {
-		$tmp_filecontents	= $self->getFileContents($self->{'PKG_DB_DIR'}.'/'.$package.'/IUSE');
+	my $IUSE_PATH = path($self->{PKG_DB_DIR} )->child($package, 'IUSE');
+	my $USE_PATH  = path($self->{PKG_DB_DIR} )->child($package, 'USE' );
+
+	if (-e $IUSE_PATH ) {
+		$tmp_filecontents	= $IUSE_PATH->slurp;
 	}
 	$tmp_filecontents	=~s/\n//g;
 	@package_IUSE		= split(/ /,$tmp_filecontents);
-	if (-e $self->{'PKG_DB_DIR'}.'/'.$package.'/USE') {
-		$tmp_filecontents	= $self->getFileContents($self->{'PKG_DB_DIR'}.'/'.$package.'/USE');
+	if (-e $USE_PATH ) {
+		$tmp_filecontents	= $USE_PATH->slurp;
 	}
 	$tmp_filecontents	=~s/\n//g;
 	@package_USE		= split(/ /,$tmp_filecontents);
@@ -475,15 +464,18 @@ sub getAvailableEbuilds {
 	my $repo	= shift;
 	my @packagelist	= ();
 
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
-	if (-e $repo.'/'.$catPackage) {
+	my $repo_path = path($repo);
+	my $category = $repo_path->child( $catPackage );
+
+	if (-e $category) {
 		# - get list of ebuilds >
-		my $dh = new DirHandle($repo.'/'.$catPackage);
-		while (defined($_ = $dh->read)) {
-			if ($_ =~ m/(.+)\.ebuild$/) {
-				push(@packagelist,$_);
+		my $dh = $category->iterator();
+		while (defined(my $ebuild = $dh->())) {
+			if ($ebuild->basename =~ m/(.+)\.ebuild$/) {
+				push(@packagelist,$ebuild);
 			}
 		}
 	}
@@ -520,7 +512,7 @@ sub getBestEbuildVersion {
 # @listOfArches=$pxs->getAvailableArches();
 sub getAvailableArches {
 	my $self	= shift;
-	return split(/\n/,$self->getFileContents($self->{'PORTDIR'}.'/profiles/arch.list'));
+	return $self->portdir->child('profiles','arch.list')->lines({ chomp => 1 });
 }
 
 # Description:
@@ -529,8 +521,8 @@ sub getAvailableArches {
 sub getPortageXScategorylist {
 	my $self	= shift;
 	my $category	= shift;
-
-	return split(/\n/,$self->getFileContents($self->{'PORTAGEXS_ETC_DIR'}.'/categories/'.$category.'.list'));
+	my $etcpath = path($self->{'PORTAGEXS_ETC_DIR'});
+	return $etcpath->child('categories',$category . '.list')->lines({ chomp => 1 });
 }
 
 # Description:
@@ -542,18 +534,19 @@ sub getPackagesFromCategory {
 	my $self	= shift;
 	my $category	= shift;
 	my $repo	= shift;
-	my $dhp;
-	my $tp;
 	my @packages	= ();
 
 	return () if !$category;
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo= $self->portdir if (!$repo);
 
-	if (-d $repo.'/'.$category) {
-		$dhp = new DirHandle($repo.'/'.$category);
-		while (defined($tp = $dhp->read)) {
+	my $repo_path = path($repo);
+	my $category_path = $repo_path->child( $category );
+
+	if (-d $category_path ) {
+		my $dhp = $category_path->iterator;
+		while (defined( my $tp = $dhp->())) {
 			# - not excluded and $_ is a dir?
-			if (! $self->{'EXCLUDE_DIRS'}{$tp} && -d $repo.'/'.$category.'/'.$tp) {
+			if (! $self->{'EXCLUDE_DIRS'}{$tp->basename} && -d $tp) {
 				push(@packages,$tp);
 			}
 		}
@@ -572,33 +565,29 @@ sub fileBelongsToPackage {
 	my $file	= shift;
 
 	my @matches	= ();
-	my $dhc;
-	my $dhp;
-	my $tc;
-	my $tp;
 
 	# - read categories >
-	$dhc = new DirHandle($self->{'PKG_DB_DIR'});
+	my $dhc = path( $self->{'PKG_DB_DIR'} )->iterator;
 	if (defined $dhc) {
-		while (defined($tc = $dhc->read)) {
+		while (defined(my $tc = $dhc->())) {
 			# - not excluded and $_ is a dir?
-			if (! $self->{EXCLUDE_DIRS}{$tc} && -d $self->{'PKG_DB_DIR'}.'/'.$tc) {
-				$dhp = new DirHandle($self->{'PKG_DB_DIR'}.'/'.$tc);
-				while (defined($tp = $dhp->read)) {
-					open my $fh, '<', $self->{'PKG_DB_DIR'}.'/'.$tc.'/'.$tp.'/CONTENTS' or next;
+			if (! $self->{EXCLUDE_DIRS}{$tc->basename} && -d $tc) {
+				my $dhp = $tc->iterator;
+				while (defined(my $tp = $dhp->())) {
+					my $contents = $tp->child('CONTENTS');
+					next unless -f $contents;
+				    my $fh = $contents->openr;
 					while (<$fh>) {
 						if ($_=~m/$file/) {
-							push(@matches,$tc.'/'.$tp);
+							push(@matches,$tc->basename.'/'.$tp->basename);
 							last;
 						}
 					}
 					close $fh;
 				}
-				undef $dhp;
 			}
 		}
 	}
-	undef $dhc;
 
 	return @matches;
 }
@@ -612,9 +601,12 @@ sub getFilesOfInstalledPackage {
 	my @files	= ();
 
 	# - find installed versions & loop >
-	foreach ($self->searchInstalledPackage($package)) {
-		foreach (split(/\n/,$self->getFileContents($self->{PKG_DB_DIR}.'/'.$_.'/CONTENTS'))) {
-			push(@files,(split(/ /,$_))[1]);
+	foreach my $pkg ($self->searchInstalledPackage($package)) {
+		my $pkg = ( ref $pkg ? $pkg : do {
+			path($self->{PKG_DB_DIR})->child($pkg);
+		});
+		foreach my $file_line ( $pkg->child('CONTENTS')->lines({ chomp => 1 } )) {
+			push(@files,(split(/ /,$file_line))[1]);
 		}
 	}
 
@@ -656,8 +648,9 @@ sub getReponame {
 	my $repo	= shift;
 	my $repo_name	= '';
 
-	if (-f $repo.'/profiles/repo_name') {
-		$repo_name = $self->getFileContents($repo.'/profiles/repo_name');
+	my $repofile = path($repo)->child('profiles','repo_name' );
+	if (-f $repofile ) {
+		$repo_name = $repofile->slurp();
 		chomp($repo_name);
 		return $repo_name;
 	}
@@ -673,10 +666,10 @@ sub getReponame {
 sub resolveMirror {
 	my $self	= shift;
 	my $mirror	= shift;
-	my $buffer	= $self->getFileContents($self->{PORTDIR}.'/profiles/thirdpartymirrors');
+	my $mirrorlist	= $self->portdir->child('profiles/thirdpartymirrors');
 
-	foreach (split(/\n/,$buffer)) {
-		my @p=split(/\t/,$_);
+	foreach my $q_mirror ($mirrorlist->lines({ chomp => 1 })) {
+		my @p=split(/\t/,$q_mirror);
 		if ($mirror eq $p[0]) {
 			return split(/ /,$p[2]);
 		}
@@ -694,11 +687,23 @@ sub getCategories {
 	my $self	= shift;
 	my $repo	= shift;
 
-	if (-e $repo.'/profiles/categories') {
-		return split(/\n/,$self->getFileContents($repo.'/profiles/categories'));
+	my $categoryfile = path($repo)->child('profiles/categories');
+	if (-e $categoryfile) {
+		return $categoryfile->lines({ chomp => 1 });
 	}
+    my %not_a_category = (
+        'packages','distfiles','profiles','eclass','licenses','metadata','scripts'
+    );
 
-	return ();
+    my @categories;
+    my $it = path($repo)->iterator;
+	while(defined(my $tc = $it->()) ){
+		next if $self->{'EXCLUDE_DIRS'}{$tc->basename};
+        next if exists $not_a_category{$tc->basename};
+        next if not -d $tc;
+        push @categories, $tc->basename;
+    }
+	return (@categories);
 }
 
 # Description:
@@ -707,11 +712,15 @@ sub getCategories {
 sub getProfilePath {
 	my $self	= shift;
 
-	if (-e $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'})) {
-		return $self->{'ETC_DIR'}.readlink($self->{'MAKE_PROFILE_PATH'});
+	my $profile_path = path($self->{'MAKE_PROFILE_PATH'});
+	my $etcdir       = path($self->{'ETC_DIR'});
+	my $rl_target    = readlink($profile_path);
+
+	if (-e $etcdir->child($rl_target)) {
+		return $etcdir->child($rl_target)
 	}
-	elsif (-e readlink($self->{'MAKE_PROFILE_PATH'})) {
-		return readlink($self->{'MAKE_PROFILE_PATH'});
+	elsif (-e $rl_target ) {
+		return $rl_target;
 	}
 
 	return;
@@ -724,7 +733,7 @@ sub getPackagesFromWorld {
 	my $self	= shift;
 
 	if (-e $self->{'PATH_TO_WORLDFILE'}) {
-		return split(/\n/,$self->getFileContents($self->{'PATH_TO_WORLDFILE'}));
+		return path($self->{'PATH_TO_WORLDFILE'})->lines({ chomp => 1 });
 	}
 
 	return ();
@@ -747,7 +756,7 @@ sub recordPackageInWorld {
 	$world{$package}=1;
 
 	# - write world file >
-	open my $fh, '>', $self->{'PATH_TO_WORLDFILE'} or die('Cannot write to world file!');
+	my $fh = path($self->{'PATH_TO_WORLDFILE'})->openw;
 	foreach (keys %world) {
 		print $fh $_,"\n";
 	}
@@ -773,7 +782,7 @@ sub removePackageFromWorld {
 	$world{$package}=0;
 
 	# - write world file >
-	open my $fh,'>', $self->{'PATH_TO_WORLDFILE'} or die('Cannot write to world file!');
+	my $fh = path($self->{'PATH_TO_WORLDFILE'})->openw;
 	foreach (keys %world) {
 		print $fh $_,"\n" if ($world{$_});
 	}
@@ -787,10 +796,6 @@ sub removePackageFromWorld {
 # $pxs->resetCaches();
 sub resetCaches {
 	my $self	= shift;
-
-	# - Core >
-	$self->{'PORTDIR'}=undef;
-	$self->{'PORTDIR'}=$self->getPortdir();
 
 	# - Console >
 
@@ -831,18 +836,19 @@ sub searchPackageByMaintainer {
 	my @fields		= ();
 
 	#if (!$mode) { $mode='like'; }
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	# - read categories >
-	foreach ($self->searchPackage('','like',$repo)) {
-		if (-e $repo.'/'.$_.'/metadata.xml') {
-			my $buffer=$self->getFileContents($repo.'/'.$_.'/metadata.xml');
+	foreach my $pkg ($self->searchPackage('','like',$repo)) {
+		my $metaxml = path($repo)->child($pkg, 'metadata.xml');
+		if (-e $metaxml ) {
+			my $buffer= $metaxml->slurp();
 			if ($buffer =~ m/<email>$searchString(.*)?<\/email>/i) {
-				push(@matches,$_);
+				push(@matches,$pkg);
 			}
 			elsif ($buffer =~ m/<name>$searchString(.*)?<\/name>/i) {
-				push(@matches,$_);
+				push(@matches,$pkg);
 			}
 		}
 	}
@@ -868,15 +874,16 @@ sub searchPackageByHerd {
 	my @fields		= ();
 
 	#if (!$mode) { $mode='like'; }
-	$repo=$self->{'PORTDIR'} if (!$repo);
+	$repo=$self->portdir if (!$repo);
 	if (!-d $repo) { return (); }
 
 	# - read categories >
-	foreach ($self->searchPackage('','like',$repo)) {
-		if (-e $repo.'/'.$_.'/metadata.xml') {
-			my $buffer=$self->getFileContents($repo.'/'.$_.'/metadata.xml');
+	foreach my $pkg ($self->searchPackage('','like',$repo)) {
+		my $metaxml = path($repo)->child($pkg, 'metadata.xml');
+		if (-e $metaxml ) {
+			my $buffer= $metaxml->slurp();
 			if ($buffer =~ m/<herd>$searchString(.*)?<\/herd>/i) {
-				push(@matches,$_);
+				push(@matches,$metaxml->parent);
 			}
 		}
 	}
@@ -898,7 +905,17 @@ PortageXS::Core - Core behaviour role for C<PortageXS>
 
 =head1 VERSION
 
-version 0.3.0
+version 0.3.1
+
+=begin MetaPOD::JSON v1.1.0
+
+{
+    "namespace":"PortageXS::Core",
+    "interface":"role"
+}
+
+
+=end MetaPOD::JSON
 
 =head1 AUTHORS
 
