@@ -78,7 +78,7 @@ sub getPortageMakeParam {
 	my $self		= shift;
 	my $param		= shift;
 	my @files		= ();
-	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/make.conf);
+	my @etcfiles		= qw(/usr/share/portage/config/make.globals /etc/portage/make.conf);
 	my $v			= '';
 	my $parent		= '';
 	my $curPath;
